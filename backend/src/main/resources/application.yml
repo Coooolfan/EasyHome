@@ -14,3 +14,7 @@ springdoc:
   swagger-ui:
     path: /test
   packages-to-scan: com.coooolfan.easyhome.pojo,com.coooolfan.easyhome.controller
+llm:
+  api-url: 写你自己的API地址
+  api-key: 写你自己的API Key
+  model: 写你自己的模型名称
