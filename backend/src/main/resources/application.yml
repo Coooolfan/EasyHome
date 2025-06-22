@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: easyhome
+  datasource:
+    url: jdbc:postgresql://localhost:5432/easyhome
+    username: easyhome
+    password: easyhome
+server:
+  port: 8080
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    path: /test
+  packages-to-scan: com.coooolfan.easyhome.pojo,com.coooolfan.easyhome.controller

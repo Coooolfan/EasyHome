@@ -1,0 +1,16 @@
+package com.coooolfan.easyhome.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.coooolfan.easyhome.pojo.dto.LoginDTO;
+import com.coooolfan.easyhome.pojo.entity.SysUser;
+import jakarta.security.auth.message.AuthException;
+
+
+/**
+ * @author lima
+ * @version 0.0.1
+ **/
+public interface SysUserService
+        extends IService<SysUser> {
+    Long login(LoginDTO loginDTO) throws AuthException;
+}
