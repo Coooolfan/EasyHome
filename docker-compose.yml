@@ -1,0 +1,18 @@
+# Only for Development
+# 仅用于开发环境
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: easyhome-postgres
+    environment:
+      POSTGRES_DB: easyhome
+      POSTGRES_USER: easyhome
+      POSTGRES_PASSWORD: easyhome
+    ports:
+      - "5432:5432"
+    volumes:
+      - easyhome-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  easyhome-postgres-data:
+    driver: local
