@@ -19,6 +19,7 @@ import java.util.Arrays;
 public class AdminServiceImpl implements AdminService {
 
     private HouseMapper houseMapper;
+
     private HouseVecMapper houseVecMapper;
 
     private EmbeddingModel embeddingModel;
@@ -28,7 +29,7 @@ public class AdminServiceImpl implements AdminService {
     public void resetHouseVec() {
         ArrayList<String> houseStr = new ArrayList<>();
         val houses = houseMapper.selectList(null);
-        
+
         // 先清空所有向量数据
         houseVecMapper.clearAll();
 
@@ -36,23 +37,23 @@ public class AdminServiceImpl implements AdminService {
             String str = toString(house);
             EmbeddingResponse resp = embeddingModel.input(str).call();
             float[] embedding = resp.getData().getFirst().getEmbedding();
-            
+
             // 将float[]转换为PostgreSQL vector格式的字符串: [1,2,3,...]
             String vectorStr = Arrays.toString(embedding);
-                
+
             houseVecMapper.insertHouseVec(house.getId(), vectorStr);
         }
     }
 
     private String toString(House house) {
         return "房屋位于" + house.getAddress() + "。" +
-               "房屋户型为" + house.getRooms() + "，" +
-               "面积为" + house.getArea() + "平方米，" +
-               "总价为" + house.getPrice() + "元，" +
-               "单价为" + house.getUnitPrice() + "元/平方米，" +
-               "房屋朝向为" + house.getOrientation() + "，" +
-               "装修情况为" + house.getDecoration() + "，" +
-               "楼层为" + house.getFloor() + "，" +
-               "卖点有" + house.getTitle() + "。";
+                "房屋户型为" + house.getRooms() + "，" +
+                "面积为" + house.getArea() + "平方米，" +
+                "总价为" + house.getPrice() + "元，" +
+                "单价为" + house.getUnitPrice() + "元/平方米，" +
+                "房屋朝向为" + house.getOrientation() + "，" +
+                "装修情况为" + house.getDecoration() + "，" +
+                "楼层为" + house.getFloor() + "，" +
+                "卖点有" + house.getTitle() + "。";
     }
 }

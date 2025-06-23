@@ -14,4 +14,6 @@ import java.util.List;
  **/
 public interface HouseService extends IService<House> {
     IPage<House> getByPage(Page<House> page, HouseQueryVO queryVO);
+
+    List<House> getByVectorSearch(String query, int limit);
 }

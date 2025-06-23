@@ -5,12 +5,18 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coooolfan.easyhome.mapper.HouseMapper;
+import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
 import com.coooolfan.easyhome.service.HouseService;
+import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.val;
+import org.noear.solon.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -18,13 +24,27 @@ import java.util.List;
  * @version 0.0.1
  **/
 @Service
+@AllArgsConstructor
 public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements HouseService {
 
+    private EmbeddingModel embed;
+
+    private HouseVecMapper houseVecMapper;
+
+    private HouseMapper houseMapper;
 
     @Override
     public IPage<House> getByPage(Page<House> page, HouseQueryVO queryVO) {
         QueryWrapper<House> queryWrapper = buildQueryWrapper(queryVO);
         return this.page(page, queryWrapper);
+    }
+
+    @Override
+    @SneakyThrows
+    public List<House> getByVectorSearch(String query, int limit) {
+        val embedding = embed.input(query).call().getData().getFirst().getEmbedding();
+        List<Long> similarHouses = houseVecMapper.findSimilarHouses(Arrays.toString(embedding), limit);
+        return houseMapper.selectBatchIds(similarHouses);
     }
 
     private QueryWrapper<House> buildQueryWrapper(HouseQueryVO queryVO) {
