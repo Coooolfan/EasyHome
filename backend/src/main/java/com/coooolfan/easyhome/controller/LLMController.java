@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 import java.util.UUID;
 
 @Slf4j
-@RequestMapping("/api/chat_v1")
+@RequestMapping("/api/chat")
 @RestController
 @AllArgsConstructor
 public class LLMController {
@@ -73,7 +73,6 @@ public class LLMController {
 //        log.info("stream chat {} prompt: {}", uuid, prompt);
 //        return Flux.from(chatModel.prompt(prompt).stream())
 //                .map(resp -> {
-//                    log.info("stream chat {}, resp: {}", uuid, resp);
 //                    return new StreamChatResp(
 //                            resp.getMessage().getContent(),
 //                            "Assistant",

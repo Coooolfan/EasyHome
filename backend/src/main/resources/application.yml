@@ -6,9 +6,9 @@ spring:
     username: easyhome
     password: easyhome
     type: com.alibaba.druid.pool.DruidDataSource
-  ai:
-    deepseek:
-      api-key: sk-dacd71f3a80a4222b1d2438b038136b8
+#  ai:
+#    deepseek:
+#      api-key: sk-dacd71f3a80a4222b1d2438b038136b8
 server:
   port: 8080
 springdoc:
@@ -19,6 +19,16 @@ springdoc:
     path: /test
   packages-to-scan: com.coooolfan.easyhome.pojo,com.coooolfan.easyhome.controller
 llm:
-  api-url: 写你自己的API地址
-  api-key: 写你自己的API Key
-  model: 写你自己的模型名称
+  #  api-url: https://api.oaipro.com/v1/chat/completions
+  #  api-key: sk-7a796ekeYQTaJ3cVv1LmWDmMGtntH5Um4EdAMyaMDd4Lj8QK4KKG
+  #  model: gpt-4.1-nano
+  api-url: https://api.deepseek.com/chat/completions
+  api-key: sk-c4ee82c1252d4860961979ea884e7c43
+  model: deepseek-chat
+embed:
+  api-url: https://api.oaipro.com/v1/embeddings
+  api-key: sk-7a796ekeYQTaJ3cVv1LmWDmMGtntH5Um4EdAMyaMDd4Lj8QK4KKG
+  model: text-embedding-3-small
+#  api-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+#  api-key: sk-6ed32a88f5ac428f86a4d242c6eabb9d
+#  model: text-embedding-v4
