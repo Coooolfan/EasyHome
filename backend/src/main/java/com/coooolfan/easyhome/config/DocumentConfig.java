@@ -28,7 +28,7 @@ public class DocumentConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public GroupedOpenApi adminApi(){
+    public GroupedOpenApi adminApi() {
         return GroupedOpenApi.builder()
                 .group("admin")
                 .pathsToMatch("/**")
@@ -38,9 +38,13 @@ public class DocumentConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 支持 Swagger UI 的静态资源
         registry.addResourceHandler("/doc.html")
                 .addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
+
+        registry.addResourceHandler("/favicon.ico")
+                .addResourceLocations("classpath:/static/favicon.ico");
     }
 }
