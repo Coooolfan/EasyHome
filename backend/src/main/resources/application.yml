@@ -5,6 +5,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/easyhome
     username: easyhome
     password: easyhome
+    type: com.alibaba.druid.pool.DruidDataSource
 server:
   port: 8080
 springdoc:

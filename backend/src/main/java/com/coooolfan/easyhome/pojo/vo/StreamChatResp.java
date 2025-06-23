@@ -9,5 +9,5 @@ public class StreamChatResp {
     String content;
     String role;
     boolean finished;
-    String AggregationMessage;
+    String aggregationMessage;
 }
