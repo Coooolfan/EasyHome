@@ -6,6 +6,9 @@ spring:
     username: easyhome
     password: easyhome
     type: com.alibaba.druid.pool.DruidDataSource
+  ai:
+    deepseek:
+      api-key:
 server:
   port: 8080
 springdoc:

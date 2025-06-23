@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 import java.util.UUID;
 
 @Slf4j
-@RequestMapping("/api/chat")
+@RequestMapping("/api/chat_v1")
 @RestController
 @AllArgsConstructor
 public class LLMController {
