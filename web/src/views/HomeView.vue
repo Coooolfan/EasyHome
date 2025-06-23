@@ -63,7 +63,7 @@ const sendMessage = async (): Promise<void> => {
 
     prompt += userInput.value;
 
-    let url = `/api/chat/stream?prompt=${encodeURIComponent(prompt)}`;
+    let url = `/api/chat/stream?message=${encodeURIComponent(prompt)}`;
 
     // 调用API的流式接口
     const response = await fetch(url, {
