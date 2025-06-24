@@ -28,10 +28,10 @@ public class DocumentConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public GroupedOpenApi adminApi() {
+    public GroupedOpenApi api() {
         return GroupedOpenApi.builder()
-                .group("admin")
-                .pathsToMatch("/**")
+                .group("api")
+                .pathsToMatch("/api/**")
                 .packagesToScan("com.coooolfan.easyhome.controller")
                 .build();
     }
@@ -43,8 +43,5 @@ public class DocumentConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
-
-        registry.addResourceHandler("/favicon.ico")
-                .addResourceLocations("classpath:/static/favicon.ico");
     }
 }

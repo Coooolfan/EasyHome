@@ -2,6 +2,8 @@ package com.coooolfan.easyhome.controller;
 
 import com.coooolfan.easyhome.pojo.vo.StreamChatResp;
 import com.coooolfan.easyhome.service.HouseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.ai.chat.ChatModel;
@@ -18,6 +20,7 @@ import java.util.UUID;
 @RequestMapping("/api/chat")
 @RestController
 @AllArgsConstructor
+@Tag(name = "聊天接口组")
 public class LLMController {
 
     private ChatModel chatModel;
@@ -26,6 +29,7 @@ public class LLMController {
 
     @Produces(MediaType.TEXT_PLAIN_VALUE)
     @GetMapping("call")
+    @Operation(summary = "调用聊天模型接口")
     public String call(String message) throws Exception {
         UUID uuid = UUID.randomUUID();
         log.info("chat {} prompt: {}", uuid, message);
@@ -70,6 +74,7 @@ public class LLMController {
 //    }
 
     @GetMapping("stream")
+    @Operation(summary = "流式聊天接口")
     public Flux<StreamChatResp> stream(String message) {
         UUID uuid = UUID.randomUUID();
         message = "权威资料：\n" + houseService.getByVectorSearch(message, 1) + "\n\n" +

@@ -6,9 +6,6 @@ spring:
     username: easyhome
     password: easyhome
     type: com.alibaba.druid.pool.DruidDataSource
-#  ai:
-#    deepseek:
-#      api-key: sk-dacd71f3a80a4222b1d2438b038136b8
 server:
   port: 8080
 springdoc:
@@ -16,10 +13,9 @@ springdoc:
     enabled: true
     path: /api-docs
   swagger-ui:
-    path: /test
+    path: /doc.html
   packages-to-scan: com.coooolfan.easyhome.pojo,com.coooolfan.easyhome.controller
 llm:
-
   api-url: https://api.deepseek.com/chat/completions
   api-key: 你自己的API Key
   model: deepseek-chat
