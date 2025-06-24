@@ -1,5 +1,35 @@
+// filepath: /Users/lima/code/project/EasyHome/web/src/views/SearchView.vue
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import axios from 'axios'
+import HouseDetailModal from '@/components/HouseDetail.vue'
+
+// 定义房源类型
+interface House {
+  id: number
+  title: string
+  address: string
+  price: number
+  unitPrice: number
+  area: number
+  rooms: string
+  floor: string
+  buildYear: number
+  orientation: string
+  decoration: string
+  image: string
+  createdAt?: string
+  updatedAt?: string
+  tag: string[]
+}
+
+// 定义分页响应类型
+interface PageResponse {
+  records: House[]
+  current: number
+  total: number
+  size: number
+}
 
 // 搜索和筛选状态
 const searchQuery = ref('')
@@ -8,91 +38,125 @@ const filters = reactive({
   houseType: '',
   area: '',
   district: '',
-  sortBy: 'price-asc'
+  sortBy: 'time-desc'
 })
 
-// 模拟房源数据
-const houses = ref([
-  {
-    id: 1,
-    title: '高新区幸福小区 精装三居室',
-    address: '高新区幸福小区3号楼2单元501',
-    price: 1200000,
-    unitPrice: 15000,
-    area: 80,
-    rooms: '3室2厅1卫',
-    floor: '5/6层',
-    year: 2018,
-    orientation: '南北',
-    decoration: '精装',
-    image: 'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=400&h=300&fit=crop',
-    tags: ['地铁房', '学区房', '精装修']
-  },
-  {
-    id: 2,
-    title: '市中心豪华公寓 拎包入住',
-    address: '市中心CBD核心区A座2008',
-    price: 2500000,
-    unitPrice: 25000,
-    area: 100,
-    rooms: '2室2厅2卫',
-    floor: '20/25层',
-    year: 2020,
-    orientation: '南向',
-    decoration: '豪装',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop',
-    tags: ['豪华装修', '高层景观', '商务区']
-  },
-  {
-    id: 3,
-    title: '学区房 临近名校 交通便利',
-    address: '教育路学府花园6号楼',
-    price: 950000,
-    unitPrice: 12000,
-    area: 79,
-    rooms: '2室1厅1卫',
-    floor: '3/6层',
-    year: 2015,
-    orientation: '南向',
-    decoration: '简装',
-    image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop',
-    tags: ['学区房', '地铁房', '投资首选']
-  }
-])
+// 分页状态
+const pagination = reactive({
+  current: 1,
+  size: 10,
+  total: 0
+})
 
-const filteredHouses = ref(houses.value)
+// 房源数据和状态
+const houses = ref<House[]>([])
+const filteredHouses = ref<House[]>([])
+const loading = ref(false)
+const error = ref('')
+
+// 模态框状态
+const showDetailModal = ref(false)
+const selectedHouse = ref<House | null>(null)
+
+// 查看房源详情
+const viewHouseDetail = (house: House) => {
+  selectedHouse.value = house
+  showDetailModal.value = true
+}
+
+// 关闭详情模态框
+const closeDetailModal = () => {
+  showDetailModal.value = false
+}
+
+// 获取房源数据
+const fetchHouses = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    
+    // 构建查询参数
+    const queryParams: any = {
+      sortBy: filters.sortBy
+    }
+    
+    // 只在有值时添加参数
+    if (searchQuery.value?.trim()) {
+      queryParams.title = searchQuery.value.trim()
+    }
+    
+    if (filters.houseType) {
+      queryParams.rooms = filters.houseType
+    }
+    
+    // 处理价格范围
+    if (filters.priceRange) {
+      const [min, max] = filters.priceRange.split('-').map(Number)
+      queryParams.minPrice = min
+      queryParams.maxPrice = max
+    }
+    
+    // 构建请求参数
+    const params = new URLSearchParams()
+    
+    // 添加分页参数
+    params.append('current', pagination.current.toString())
+    params.append('size', pagination.size.toString())
+    
+    // 添加查询参数
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, String(value))
+      }
+    })
+    
+    console.log('请求参数:', params.toString())
+    
+    // 修正API路径: 从 /api/homes/page 改为 /api/houses/page
+    const response = await axios.get(`/api/houses/page?${params.toString()}`)
+    console.log('API响应:', response.data)
+    
+    const data: PageResponse = response.data
+    houses.value = data.records || []
+    filteredHouses.value = houses.value
+    
+    // 更新分页信息
+    pagination.total = data.total
+    pagination.current = data.current
+    
+  } catch (err: any) {
+    console.error('获取房源数据失败:', err)
+    
+    // 更详细的错误信息处理
+    if (err.response) {
+      console.error('错误状态码:', err.response.status)
+      console.error('错误响应数据:', err.response.data)
+      error.value = `服务器错误 (${err.response.status}): ${err.response.data?.message || err.response.statusText}`
+    } else if (err.request) {
+      console.error('请求超时或网络错误:', err.request)
+      error.value = '网络连接失败，请检查网络或后端服务是否正常运行'
+    } else {
+      console.error('请求配置错误:', err.message)
+      error.value = `请求失败: ${err.message}`
+    }
+    
+    houses.value = []
+    filteredHouses.value = []
+  } finally {
+    loading.value = false
+  }
+}
 
 // 搜索功能
 const handleSearch = () => {
-  let result = houses.value
-  
-  if (searchQuery.value) {
-    result = result.filter(house => 
-      house.title.includes(searchQuery.value) || 
-      house.address.includes(searchQuery.value)
-    )
-  }
-  
-  // 应用筛选器
-  if (filters.priceRange) {
-    const [min, max] = filters.priceRange.split('-').map(Number)
-    result = result.filter(house => house.price >= min && house.price <= max)
-  }
-  
-  if (filters.houseType) {
-    result = result.filter(house => house.rooms.includes(filters.houseType))
-  }
-  
-  // 排序
-  if (filters.sortBy === 'price-asc') {
-    result.sort((a, b) => a.price - b.price)
-  } else if (filters.sortBy === 'price-desc') {
-    result.sort((a, b) => b.price - a.price)
-  } else if (filters.sortBy === 'area-desc') {
-    result.sort((a, b) => b.area - a.area)
-  }
-  
-  filteredHouses.value = result
+  pagination.current = 1
+  fetchHouses()
+}
+
+// 分页处理
+const handlePageChange = (page: number) => {
+  pagination.current = page
+  fetchHouses()
 }
 
 // 格式化价格
@@ -110,9 +174,15 @@ const resetFilters = () => {
   filters.houseType = ''
   filters.area = ''
   filters.district = ''
-  filters.sortBy = 'price-asc'
-  filteredHouses.value = houses.value
+  filters.sortBy = 'time-desc'
+  pagination.current = 1
+  fetchHouses()
 }
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchHouses()
+})
 </script>
 
 <template>
@@ -135,13 +205,15 @@ const resetFilters = () => {
                                 placeholder="请输入小区名、地址或关键词" 
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 @keyup.enter="handleSearch"
+                                :disabled="loading"
                             >
                         </div>
                         <button 
                             @click="handleSearch"
-                            class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                            :disabled="loading"
+                            class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium disabled:opacity-50"
                         >
-                            搜索
+                            {{ loading ? '搜索中...' : '搜索' }}
                         </button>
                     </div>
                 </div>
@@ -158,6 +230,7 @@ const resetFilters = () => {
                             <button 
                                 @click="resetFilters"
                                 class="text-sm text-blue-600 hover:text-blue-800"
+                                :disabled="loading"
                             >
                                 重置
                             </button>
@@ -170,6 +243,7 @@ const resetFilters = () => {
                                 v-model="filters.priceRange" 
                                 @change="handleSearch"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                :disabled="loading"
                             >
                                 <option value="">不限</option>
                                 <option value="0-1000000">100万以下</option>
@@ -186,6 +260,7 @@ const resetFilters = () => {
                                 v-model="filters.houseType" 
                                 @change="handleSearch"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                :disabled="loading"
                             >
                                 <option value="">不限</option>
                                 <option value="1室">1室</option>
@@ -202,9 +277,12 @@ const resetFilters = () => {
                                 v-model="filters.sortBy" 
                                 @change="handleSearch"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                :disabled="loading"
                             >
+                                <option value="time-desc">最新发布</option>
                                 <option value="price-asc">价格从低到高</option>
                                 <option value="price-desc">价格从高到低</option>
+                                <option value="area-asc">面积从小到大</option>
                                 <option value="area-desc">面积从大到小</option>
                             </select>
                         </div>
@@ -214,14 +292,47 @@ const resetFilters = () => {
                 <!-- 房源列表 -->
                 <div class="lg:col-span-3 mt-8 lg:mt-0">
                     <!-- 结果统计 -->
-                    <div class="mb-6">
+                    <div class="mb-6" v-if="!loading && !error">
                         <p class="text-gray-600">
-                            共找到 <span class="font-semibold text-blue-600">{{ filteredHouses.length }}</span> 套房源
+                            共找到 <span class="font-semibold text-blue-600">{{ pagination.total || filteredHouses.length }}</span> 套房源
                         </p>
                     </div>
 
+                    <!-- 错误提示 -->
+                    <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">
+                                    加载失败
+                                </h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <p>{{ error }}</p>
+                                </div>
+                                <div class="mt-4">
+                                    <button 
+                                        @click="fetchHouses"
+                                        class="text-sm bg-red-100 text-red-800 hover:bg-red-200 px-3 py-1 rounded-md"
+                                    >
+                                        重试
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 加载状态 -->
+                    <div v-if="loading" class="text-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <p class="mt-4 text-gray-600">加载中...</p>
+                    </div>
+
                     <!-- 房源卡片列表 -->
-                    <div class="space-y-6">
+                    <div v-else class="space-y-6">
                         <div 
                             v-for="house in filteredHouses" 
                             :key="house.id"
@@ -229,9 +340,9 @@ const resetFilters = () => {
                         >
                             <div class="md:flex">
                                 <!-- 房源图片 -->
-                                <div class="md:w-1/3">
+                                <div class="md:w-1/3" @click="viewHouseDetail(house)">
                                     <img 
-                                        :src="house.image" 
+                                        :src="house.image || 'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=400&h=300&fit=crop'" 
                                         :alt="house.title"
                                         class="w-full h-48 md:h-full object-cover"
                                     >
@@ -240,7 +351,10 @@ const resetFilters = () => {
                                 <!-- 房源信息 -->
                                 <div class="md:w-2/3 p-6">
                                     <div class="flex justify-between items-start mb-2">
-                                        <h3 class="text-xl font-semibold text-gray-900 hover:text-blue-600">
+                                        <h3 
+                                          @click="viewHouseDetail(house)"
+                                          class="text-xl font-semibold text-gray-900 hover:text-blue-600 cursor-pointer"
+                                        >
                                             {{ house.title }}
                                         </h3>
                                         <div class="text-right">
@@ -271,14 +385,14 @@ const resetFilters = () => {
                                         </div>
                                         <div>
                                             <span class="text-gray-500">年代：</span>
-                                            <span class="font-medium">{{ house.year }}年</span>
+                                            <span class="font-medium">{{ house.buildYear }}年</span>
                                         </div>
                                     </div>
                                     
                                     <!-- 标签 -->
-                                    <div class="flex flex-wrap gap-2 mb-4">
+                                    <div class="flex flex-wrap gap-2 mb-4" v-if="house.tag && house.tag.length > 0">
                                         <span 
-                                            v-for="tag in house.tags" 
+                                            v-for="tag in house.tag" 
                                             :key="tag"
                                             class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
                                         >
@@ -288,7 +402,10 @@ const resetFilters = () => {
                                     
                                     <!-- 操作按钮 -->
                                     <div class="flex gap-3">
-                                        <button class="flex-1 px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                                        <button 
+                                          @click="viewHouseDetail(house)"
+                                          class="flex-1 px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                                        >
                                             查看详情
                                         </button>
                                         <button class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
@@ -301,7 +418,7 @@ const resetFilters = () => {
                     </div>
 
                     <!-- 空状态 -->
-                    <div v-if="filteredHouses.length === 0" class="text-center py-12">
+                    <div v-if="!loading && !error && filteredHouses.length === 0" class="text-center py-12">
                         <div class="text-gray-400 mb-4">
                             <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-2 0h-4m-2 0H3m2-4h2m2-4h2m2-4h2" />
@@ -311,16 +428,36 @@ const resetFilters = () => {
                         <p class="text-gray-500">请尝试调整搜索条件或筛选器</p>
                     </div>
 
-                    <!-- 分页（可选） -->
-                    <div class="mt-8 flex justify-center" v-if="filteredHouses.length > 0">
+                    <!-- 分页 -->
+                    <div class="mt-8 flex justify-center" v-if="!loading && !error && filteredHouses.length > 0 && pagination.total > pagination.size">
                         <nav class="flex items-center space-x-2">
-                            <button class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md">
+                            <button 
+                                @click="handlePageChange(pagination.current - 1)"
+                                :disabled="pagination.current <= 1"
+                                class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md disabled:opacity-50"
+                            >
                                 上一页
                             </button>
-                            <button class="px-3 py-2 text-sm bg-blue-600 text-white rounded-md">1</button>
-                            <button class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md">2</button>
-                            <button class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md">3</button>
-                            <button class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md">
+                            
+                            <button 
+                                v-for="page in Math.min(5, Math.ceil(pagination.total / pagination.size))" 
+                                :key="page"
+                                @click="handlePageChange(page)"
+                                :class="[
+                                    'px-3 py-2 text-sm rounded-md',
+                                    page === pagination.current 
+                                        ? 'bg-blue-600 text-white' 
+                                        : 'text-gray-500 hover:text-gray-700 border border-gray-300'
+                                ]"
+                            >
+                                {{ page }}
+                            </button>
+                            
+                            <button 
+                                @click="handlePageChange(pagination.current + 1)"
+                                :disabled="pagination.current >= Math.ceil(pagination.total / pagination.size)"
+                                class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md disabled:opacity-50"
+                            >
                                 下一页
                             </button>
                         </nav>
@@ -328,6 +465,13 @@ const resetFilters = () => {
                 </div>
             </div>
         </div>
+        
+        <!-- 房源详情模态框 -->
+        <HouseDetailModal
+          :show="showDetailModal"
+          :house="selectedHouse"
+          @close="closeDetailModal"
+        />
     </main>
 </template>
 
