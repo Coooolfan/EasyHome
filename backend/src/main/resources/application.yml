@@ -17,11 +17,12 @@ springdoc:
   packages-to-scan: com.coooolfan.easyhome.pojo,com.coooolfan.easyhome.controller
 llm:
   api-url: https://api.deepseek.com/chat/completions
-  api-key: 你自己的API Key
+  api-key: sk-36560f3847b44472862877c04f6306d3
   model: deepseek-chat
 embed:
 #  同一环境确保模型一致，确保返回1536维向量
 #  OPENAI兼容端点 类似于
   api-url: https://api.openai.com/v1/embeddings
-  api-key: 你自己的API Key
+  api-key:
   model: text-embedding-3-small
+

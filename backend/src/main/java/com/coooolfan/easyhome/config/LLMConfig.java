@@ -10,36 +10,36 @@ import org.springframework.context.annotation.Configuration;
 public class LLMConfig {
 
     @Value("${llm.api-url}")
-    private String LlmApiUrl;
+    private String llmApiUrl;
 
     @Value("${llm.api-key}")
-    private String LlmApiKey;
+    private String llmApiKey;
 
     @Value("${llm.model}")
-    private String LlmModel;
+    private String llmModel;
 
     @Bean
     public ChatModel chatModel() {
-        return ChatModel.of(LlmApiUrl)
-                .apiKey(LlmApiKey)
-                .model(LlmModel)
+        return ChatModel.of(llmApiUrl)
+                .apiKey(llmApiKey)
+                .model(llmModel)
                 .build();
     }
 
     @Value("${embed.api-url}")
-    private String EmbedApiUrl;
+    private String embedApiUrl;
 
     @Value("${embed.api-key}")
-    private String EmbedApiKey;
+    private String embedApiKey;
 
     @Value("${embed.model}")
-    private String EmbedModel;
+    private String embedModel;
 
     @Bean
     public EmbeddingModel embedModel() {
-        return EmbeddingModel.of(EmbedApiUrl)
-                .apiKey(EmbedApiKey)
-                .model(EmbedModel)
+        return EmbeddingModel.of(embedApiUrl)
+                .apiKey(embedApiKey)
+                .model(embedModel)
                 .build();
     }
 }

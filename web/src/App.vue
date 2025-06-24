@@ -1,11 +1,13 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-import NavBar from './components/NavBar.vue'
-</script>
-
 <template>
-    <div class="min-h-screen bg-gray-50">
-        <NavBar />
-        <RouterView />
-    </div>
+  <NavBar v-if="!hideNavbar" />
+  <router-view />
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import NavBar from './components/NavBar.vue'
+
+const route = useRoute()
+const hideNavbar = computed(() => route.meta.hideNavbar)
+</script>
