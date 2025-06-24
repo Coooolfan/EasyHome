@@ -22,6 +22,8 @@ import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Slf4j
 //@Service
@@ -45,10 +47,15 @@ public class LLMServiceImpl implements LLMService {
         ChatSession chatSession;
         if (chatMap.containsKey(message.getUuid())) {
             chatSession = chatMap.get(message.getUuid());
-            if (chatSession.isSteaming()) // 直接拒绝掉
+            if (chatSession.isSteaming()) {
                 log.warn("当前会话正在进行中，请稍后再试");
-//                return Flux.error(new RuntimeException("当前会话正在进行中，请稍后再试"));
-
+                return Flux.just(new StreamChatResp(
+                        "当前会话正在进行中，请稍后再试",
+                        "System",
+                        true,
+                        "当前会话正在进行中，请稍后再试"
+                ));
+            }
             chatSession.setSteaming(true);
             // 浅拷贝聊天记录
             chatHistory = new ArrayList<>(chatSession.getChatContent());
@@ -74,6 +81,13 @@ public class LLMServiceImpl implements LLMService {
                 .map(resp -> {
                     if (resp.isFinished())
                         chatSession.getChatContent().add(resp.getAggregationMessage());
+
+                    if ("stop".equals(resp.getChoices().getFirst().getFinishReason())) {
+                        // TODO 如果是stop原因，直接返回, 关闭这个SSE
+                        log.info("Received stop signal, ending stream for {}", message.getUuid());
+                        throw  new RuntimeException("<UNK>");
+                    }
+
                     log.info("{}:isfinished:{},content: {}", message.getUuid(), resp.isFinished(), resp.getMessage().getContent());
                     return new StreamChatResp(
                             resp.getMessage().getContent(),
