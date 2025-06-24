@@ -26,6 +26,14 @@ public class LLMConfig {
                 .build();
     }
 
+    @Bean
+    public ChatModel rewriteModel() {
+        return ChatModel.of(llmApiUrl)
+                .apiKey(llmApiKey)
+                .model(llmModel)
+                .build();
+    }
+
     @Value("${embed.api-url}")
     private String embedApiUrl;
 

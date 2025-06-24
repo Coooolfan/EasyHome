@@ -79,17 +79,26 @@
 
         <dependency>
             <groupId>org.noear</groupId>
+            <artifactId>solon-ai</artifactId>
+            <version>${solon.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.noear</groupId>
             <artifactId>solon-lib</artifactId>
+            <version>${solon.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.noear</groupId>
             <artifactId>solon-web-servlet-jakarta</artifactId>
+            <version>${solon.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.noear</groupId>
             <artifactId>solon-ai-mcp</artifactId>
+            <version>${solon.version}</version>
         </dependency>
     </dependencies>
 

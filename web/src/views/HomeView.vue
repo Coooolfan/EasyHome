@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineComponent } from "vue";
-import { ref, onUnmounted } from "vue";
+import { ref, onUnmounted, onMounted } from "vue";
 import { marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
@@ -26,7 +26,8 @@ const userInput = ref("");
 const messages = ref<Message[]>([]);
 const isLoading = ref(false);
 const isTyping = ref(false);
-const withHistory = ref(false);
+// 会话标识符，在页面加载时生成，之后所有请求都使用此标识符
+const sessionId = ref("");
 
 let controller: AbortController | null = null;
 
@@ -36,11 +37,22 @@ const resetAllStates = () => {
   controller = null;
 };
 
+// 在组件挂载时生成会话ID
+onMounted(() => {
+  sessionId.value = crypto.randomUUID();
+  console.log("创建新会话:", sessionId.value);
+});
+
 const sendMessage = async (): Promise<void> => {
   if (!userInput.value.trim() || isLoading.value) return;
 
   // 添加用户消息
-  messages.value.push({ role: "user", content: userInput.value });
+  const newUserMessage: Message = {
+    role: "user",
+    content: userInput.value,
+  };
+
+  messages.value.push(newUserMessage);
 
   // 准备发送请求
   isLoading.value = true;
@@ -50,27 +62,24 @@ const sendMessage = async (): Promise<void> => {
   controller = new AbortController();
 
   try {
-    let prompt = "";
-    // 如果开启了历史记录，则添加历史聊天记录
-    if (withHistory.value && messages.value.length > 1) {
-      // 构建历史消息字符串，排除最后一条用户消息（因为已经在prompt中）
-      const historyMessages = messages.value.slice(0, -1);
-      prompt +=
-        "<ChatHistory>" +
-        historyMessages.map((msg) => `${msg.role}: ${msg.content}`).join("\n") +
-        "</ChatHistory>";
-    }
+    // 直接使用用户输入作为消息内容，历史记录由后端维护
+    let prompt = userInput.value;
 
-    prompt += userInput.value;
-
-    let url = `/api/chat/stream?message=${encodeURIComponent(prompt)}`;
+    // 创建请求对象
+    const requestBody = {
+      message: prompt,
+      uuid: sessionId.value, // 传递会话ID，后端据此维护历史记录
+    };
 
     // 调用API的流式接口
-    const response = await fetch(url, {
+    const response = await fetch("/api/chat/stream", {
+      method: "POST",
       signal: controller.signal,
       headers: {
+        "Content-Type": "application/json",
         Accept: "text/event-stream",
       },
+      body: JSON.stringify(requestBody),
     });
 
     // 检查响应状态
@@ -103,28 +112,29 @@ const sendMessage = async (): Promise<void> => {
         if (value) {
           // 解码接收到的数据
           const chunk = decoder.decode(value, { stream: true });
-
           // 处理SSE格式的数据，移除"data:"前缀并解析JSON
           const lines = chunk.split("\n");
+          console.log("lines: ", lines);
           for (const line of lines) {
-            if (line.startsWith("data:")) {
-              const jsonContent = line.substring(5).trim();
-              if (jsonContent) {
-                try {
-                  const parsedData: StreamResponse = JSON.parse(jsonContent);
+            let jsonContent = line.trim();
+            if (jsonContent.startsWith("data:"))
+              jsonContent = jsonContent.substring(5).trim();
 
-                  // 更新最新的AI消息内容为聚合消息
-                  messages.value[messages.value.length - 1].content =
-                    parsedData.aggregationMessage;
+            if (jsonContent) {
+              try {
+                const parsedData: StreamResponse = JSON.parse(jsonContent);
 
-                  // 如果标记为完成，重置状态
-                  if (parsedData.finished) {
-                    resetAllStates();
-                    break;
-                  }
-                } catch (e) {
-                  console.error("JSON解析错误:", e);
+                // 更新最新的AI消息内容为聚合消息
+                const lastMessage = messages.value[messages.value.length - 1];
+                lastMessage.content = parsedData.aggregationMessage;
+
+                // 如果标记为完成，重置状态
+                if (parsedData.finished) {
+                  resetAllStates();
+                  break;
                 }
+              } catch (e) {
+                console.error("JSON解析错误:", e);
               }
             }
           }
@@ -141,8 +151,8 @@ const sendMessage = async (): Promise<void> => {
             if (jsonContent) {
               try {
                 const parsedData: StreamResponse = JSON.parse(jsonContent);
-                messages.value[messages.value.length - 1].content =
-                  parsedData.aggregationMessage;
+                const lastMessage = messages.value[messages.value.length - 1];
+                lastMessage.content = parsedData.aggregationMessage;
               } catch (e) {
                 // 忽略解析错误
               }
@@ -170,6 +180,13 @@ const cancelRequest = () => {
     controller.abort();
     resetAllStates();
   }
+};
+
+// 创建新会话
+const createNewSession = () => {
+  messages.value = [];
+  sessionId.value = crypto.randomUUID();
+  console.log("创建新会话:", sessionId.value);
 };
 
 // 表单提交处理
@@ -265,17 +282,14 @@ const renderedContent = (message: Message) => {
             placeholder="输入您的问题..."
             :disabled="isLoading"
           />
-          <div class="flex items-center mx-3">
-            <input
-              type="checkbox"
-              id="withHistoryToggle"
-              v-model="withHistory"
-              class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-            />
-            <label for="withHistoryToggle" class="ml-2 text-sm text-gray-700"
-              >携带历史记录</label
-            >
-          </div>
+          <button
+            v-if="!isLoading"
+            type="button"
+            @click="createNewSession"
+            class="mr-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg px-4 py-4 transition-colors duration-200"
+          >
+            新对话
+          </button>
           <button
             type="submit"
             :disabled="isLoading || !userInput.trim()"

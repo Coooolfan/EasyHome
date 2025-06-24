@@ -6,16 +6,23 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coooolfan.easyhome.mapper.HouseMapper;
 import com.coooolfan.easyhome.mapper.HouseVecMapper;
+import com.coooolfan.easyhome.pojo.CONSTANT;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
 import com.coooolfan.easyhome.service.HouseService;
+import com.coooolfan.easyhome.utils.EasyHomeUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.noear.solon.ai.chat.ChatModel;
+import org.noear.solon.ai.chat.ChatRole;
+import org.noear.solon.ai.chat.message.ChatMessage;
 import org.noear.solon.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,19 +40,61 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
 
     private HouseMapper houseMapper;
 
+    private ChatModel rewriteModel;
+
     @Override
     public IPage<House> getByPage(Page<House> page, HouseQueryVO queryVO) {
         QueryWrapper<House> queryWrapper = buildQueryWrapper(queryVO);
         return this.page(page, queryWrapper);
     }
 
+
     @Override
     @SneakyThrows
-    public List<House> getByVectorSearch(String query, int limit) {
+    public List<House> getHousesByVectorSearch(String query, int limit) {
         val embedding = embed.input(query).call().getData().getFirst().getEmbedding();
         List<Long> similarHouses = houseVecMapper.findSimilarHouses(Arrays.toString(embedding), limit);
         return houseMapper.selectBatchIds(similarHouses);
     }
+
+
+    @Override
+    public String getHousesDescByVectorSearch(ArrayList<ChatMessage> historyMessage, ChatMessage question, int limit) {
+        StringBuilder ragPromptBuilder = new StringBuilder();
+        for (ChatMessage chatMessage : historyMessage) {
+            if (ChatRole.ASSISTANT == chatMessage.getRole())
+                ragPromptBuilder.append("ASSISTANT: \n").append(chatMessage.getContent());
+
+            if (ChatRole.USER == chatMessage.getRole())
+                ragPromptBuilder.append("USER: \n").append(chatMessage.getContent()).append("\n");
+
+        }
+        String ragPrompt = String.format(CONSTANT.RAG_REWRITE, ragPromptBuilder, question.getContent());
+        try {
+            val rewriteResp = rewriteModel.prompt(ragPrompt).call();
+            val regQuestion = rewriteResp.getAggregationMessage().getContent();
+            val housesByVectorSearch = this.getHousesByVectorSearch(regQuestion, limit);
+            StringBuilder sb = new StringBuilder();
+            for (val house : housesByVectorSearch) {
+                sb.append(EasyHomeUtils.toString(house)).append("\n");
+            }
+            return String.format("<authoritative-information>\n%s\n</authoritative-information>",sb);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String getHousesDescByVectorSearch(ChatMessage chatMessage, int limit) {
+        val regQuestion = chatMessage.getContent();
+        val housesByVectorSearch = this.getHousesByVectorSearch(regQuestion, limit);
+        StringBuilder sb = new StringBuilder();
+        for (val house : housesByVectorSearch) {
+            sb.append(EasyHomeUtils.toString(house)).append("\n");
+        }
+        return String.format("<authoritative-information>\n%s\n</authoritative-information>",sb);
+    }
+
 
     private QueryWrapper<House> buildQueryWrapper(HouseQueryVO queryVO) {
         QueryWrapper<House> queryWrapper = new QueryWrapper<>();
@@ -116,8 +165,6 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
                         queryWrapper.orderByDesc("area");
                         break;
                     case "time-desc":
-                        queryWrapper.orderByDesc("created_at");
-                        break;
                     default:
                         queryWrapper.orderByDesc("created_at");
                         break;

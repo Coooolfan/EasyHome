@@ -4,6 +4,7 @@ import com.coooolfan.easyhome.mapper.HouseMapper;
 import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.service.AdminService;
+import com.coooolfan.easyhome.utils.EasyHomeUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -34,7 +35,7 @@ public class AdminServiceImpl implements AdminService {
         houseVecMapper.clearAll();
 
         for (House house : houses) {
-            String str = toString(house);
+            String str = EasyHomeUtils.toString(house);
             EmbeddingResponse resp = embeddingModel.input(str).call();
             float[] embedding = resp.getData().getFirst().getEmbedding();
 
@@ -43,17 +44,5 @@ public class AdminServiceImpl implements AdminService {
 
             houseVecMapper.insertHouseVec(house.getId(), vectorStr);
         }
-    }
-
-    private String toString(House house) {
-        return "房屋位于" + house.getAddress() + "。" +
-                "房屋户型为" + house.getRooms() + "，" +
-                "面积为" + house.getArea() + "平方米，" +
-                "总价为" + house.getPrice() + "元，" +
-                "单价为" + house.getUnitPrice() + "元/平方米，" +
-                "房屋朝向为" + house.getOrientation() + "，" +
-                "装修情况为" + house.getDecoration() + "，" +
-                "楼层为" + house.getFloor() + "，" +
-                "卖点有" + house.getTitle() + "。";
     }
 }
