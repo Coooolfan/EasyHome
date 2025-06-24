@@ -1,4 +1,3 @@
-// filepath: /Users/lima/code/project/EasyHome/web/src/views/SearchView.vue
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import axios from 'axios'
@@ -29,6 +28,14 @@ interface PageResponse {
   current: number
   total: number
   size: number
+}
+
+// 定义新的API响应类型
+interface ApiResponse {
+  code: string
+  message: string
+  data: PageResponse
+  timestamp: number
 }
 
 // 搜索和筛选状态
@@ -112,17 +119,22 @@ const fetchHouses = async () => {
     
     console.log('请求参数:', params.toString())
     
-    // 修正API路径: 从 /api/homes/page 改为 /api/houses/page
-    const response = await axios.get(`/api/houses/page?${params.toString()}`)
+    // 发送请求
+    const response = await axios.get<ApiResponse>(`/api/houses/page?${params.toString()}`)
     console.log('API响应:', response.data)
     
-    const data: PageResponse = response.data
-    houses.value = data.records || []
-    filteredHouses.value = houses.value
-    
-    // 更新分页信息
-    pagination.total = data.total
-    pagination.current = data.current
+    // 处理新的响应结构
+    if (response.data.code === 'SUCCESS' && response.data.data) {
+      const pageData = response.data.data
+      houses.value = pageData.records || []
+      filteredHouses.value = houses.value
+      
+      // 更新分页信息
+      pagination.total = pageData.total
+      pagination.current = pageData.current
+    } else {
+      throw new Error(response.data.message || '请求失败，未返回有效数据')
+    }
     
   } catch (err: any) {
     console.error('获取房源数据失败:', err)
@@ -131,7 +143,9 @@ const fetchHouses = async () => {
     if (err.response) {
       console.error('错误状态码:', err.response.status)
       console.error('错误响应数据:', err.response.data)
-      error.value = `服务器错误 (${err.response.status}): ${err.response.data?.message || err.response.statusText}`
+      // 检查是否有嵌套错误信息
+      const errorMessage = err.response.data?.message || err.response.data?.data?.message || err.response.statusText
+      error.value = `服务器错误 (${err.response.status}): ${errorMessage}`
     } else if (err.request) {
       console.error('请求超时或网络错误:', err.request)
       error.value = '网络连接失败，请检查网络或后端服务是否正常运行'

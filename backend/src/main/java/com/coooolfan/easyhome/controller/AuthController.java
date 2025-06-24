@@ -2,6 +2,7 @@ package com.coooolfan.easyhome.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.coooolfan.easyhome.pojo.dto.LoginDTO;
+import com.coooolfan.easyhome.response.Result;
 import com.coooolfan.easyhome.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,20 +30,20 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "登录接口")
-    public ResponseEntity<String> doLogin(@Validated @RequestBody LoginDTO loginDTO) throws AuthException {
+    public Result<String> doLogin(@Validated @RequestBody LoginDTO loginDTO) throws AuthException {
         log.info("用户登录：{}",loginDTO.getUsername());
         Long userId = sysUserService.login(loginDTO);
         if (userId != null) {
             StpUtil.login(userId);
         }
-        return ResponseEntity.ok(StpUtil.getTokenValue());
+        return Result.ok(StpUtil.getTokenValue());
     }
 
     @PostMapping("/logout")
     @Operation(summary = "退出接口")
-    public ResponseEntity<String> doLogout(){
+    public Result<String> doLogout(){
         log.info("是否登录：{}", StpUtil.isLogin());
         StpUtil.logout();
-        return ResponseEntity.ok("注销成功");
+        return Result.ok(null);
     }
 }
