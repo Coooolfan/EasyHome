@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @Tag(name = "鉴权接口组")
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/user")
 public class AuthController {
     @Resource
     private SysUserService sysUserService;

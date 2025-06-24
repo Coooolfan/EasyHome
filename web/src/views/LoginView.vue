@@ -111,14 +111,39 @@ const handleSubmit = async () => {
         password: form.password
       })
       
-      if (response.data && response.data.code === 200) {
+      console.log('登录响应:', response.data) // 调试用
+      
+      // 检查响应中是否包含token (不依赖于特定的嵌套结构)
+      let token
+      
+      if (response.data) {
+        if (typeof response.data === 'string') {
+          // 如果直接返回的是token字符串
+          token = response.data
+        } else if (response.data.token) {
+          // 如果token在顶层
+          token = response.data.token
+        } else if (response.data.data && response.data.data.token) {
+          // 如果token在data属性内
+          token = response.data.data.token
+        } else if (response.data.code === 200 && response.data.data) {
+          // 如果响应格式是 {code: 200, data: token字符串}
+          if (typeof response.data.data === 'string') {
+            token = response.data.data
+          }
+        }
+      }
+      
+      if (token) {
         // 保存用户信息和token
         const userInfo = {
           username: form.username,
-          // 其他用户信息
         }
         localStorage.setItem('userInfo', JSON.stringify(userInfo))
-        localStorage.setItem('token', response.data.data.token)
+        localStorage.setItem('token', token)
+        
+        // 设置axios的默认Authorization请求头
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
         
         successMsg.value = '登录成功，即将跳转...'
         
@@ -127,7 +152,8 @@ const handleSubmit = async () => {
           router.push('/')
         }, 1000)
       } else {
-        errorMsg.value = response.data.message || '登录失败，请检查用户名和密码'
+        console.error('未找到token:', response.data)
+        errorMsg.value = '登录失败: 未能获取授权信息'
       }
     } else {
       // 注册请求
@@ -153,7 +179,15 @@ const handleSubmit = async () => {
     }
   } catch (error: any) {
     console.error('请求失败:', error)
-    errorMsg.value = error.response?.data?.message || (isLogin.value ? '登录失败' : '注册失败')
+    
+    // 检查是否有错误响应
+    if (error.response) {
+      errorMsg.value = error.response.data?.message || `请求错误 (${error.response.status})`
+    } else if (error.request) {
+      errorMsg.value = '网络连接失败，请检查您的网络'
+    } else {
+      errorMsg.value = error.message || (isLogin.value ? '登录过程中出现错误' : '注册过程中出现错误')
+    }
   } finally {
     loading.value = false
   }
