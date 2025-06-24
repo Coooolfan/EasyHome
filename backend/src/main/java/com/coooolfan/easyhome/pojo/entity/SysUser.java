@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
  **/
 @Data
 @AllArgsConstructor
+@Builder
 @Schema(name = "SystemUser", description = "用户类")
 public class SysUser{
     @TableId(value = "id",type = IdType.AUTO)
