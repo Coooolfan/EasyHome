@@ -2,11 +2,11 @@ package com.coooolfan.easyhome.handle;
 
 import com.coooolfan.easyhome.exception.AuthException;
 import com.coooolfan.easyhome.exception.BaseException;
+import com.coooolfan.easyhome.exception.ParamException;
+import com.coooolfan.easyhome.response.Code;
 import com.coooolfan.easyhome.response.Result;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -37,5 +37,11 @@ public class GlobalExceptionHandler {
     public Result<String> notLogin(AuthException ex){
         log.error("未登录异常：{}", ex.getMessage());
         return Result.unauthorized(ex.getMessage());
+    }
+
+    @ExceptionHandler(ParamException.class)
+    public Result<String> paramExceptionHandler(ParamException ex) {
+        log.error("参数异常：{}", ex.getMessage());
+        return new Result<>(Code.BAD_REQUEST, ex.getMessage(), null);
     }
 }

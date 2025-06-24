@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -31,6 +31,14 @@ const loadUserInfo = () => {
     isLoggedIn.value = false
     username.value = ''
   }
+  
+  // 如果用户未登录且当前页面是需要登录的页面，重定向到登录页
+  if (!isLoggedIn.value && (currentPath.value === '/view' || currentPath.value === '/sell')) {
+    router.push({
+      path: '/login',
+      query: { redirect: currentPath.value } // 保存原始目的地以便登录后重定向
+    })
+  }
 }
 
 // 初始化加载
@@ -39,6 +47,11 @@ onMounted(() => {
   
   // 添加全局点击事件监听，用于关闭下拉菜单
   document.addEventListener('click', handleOutsideClick)
+})
+
+// 在组件卸载时清除事件监听
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
 })
 
 // 监听路由变化
@@ -66,7 +79,13 @@ const logout = () => {
   isLoggedIn.value = false
   username.value = ''
   showDropdown.value = false
-  router.push('/')
+  
+  // 如果当前在需要登录的页面，退出后重定向到首页
+  if (currentPath.value === '/view' || currentPath.value === '/sell' || 
+      currentPath.value === '/profile' || currentPath.value === '/settings' || 
+      currentPath.value === '/favorites') {
+    router.push('/')
+  }
 }
 
 // 控制下拉菜单
@@ -87,6 +106,17 @@ const handleOutsideClick = (event: Event) => {
     showDropdown.value = false
   }
 }
+
+// 处理受保护页面的点击
+const handleProtectedRouteClick = (route: string, event: Event) => {
+  if (!isLoggedIn.value) {
+    event.preventDefault()
+    router.push({
+      path: '/login',
+      query: { redirect: route }
+    })
+  }
+}
 </script>
 
 <template>
@@ -103,6 +133,7 @@ const handleOutsideClick = (event: Event) => {
             EasyHome
           </router-link>
           <div class="ml-10 flex items-center space-x-4">
+            <!-- 公开菜单项 -->
             <router-link to="/" class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               :class="[currentPath === '/' ? 'text-blue-800 bg-white' : 'text-white hover:bg-blue-600']">
               找房
@@ -111,14 +142,18 @@ const handleOutsideClick = (event: Event) => {
               :class="[currentPath === '/search' ? 'text-blue-800 bg-white' : 'text-white hover:bg-blue-600']">
               查房
             </router-link>
-            <router-link to="/view" class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              :class="[currentPath === '/view' ? 'text-blue-800 bg-white' : 'text-white hover:bg-blue-600']">
-              看房
-            </router-link>
-            <router-link to="/sell" class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              :class="[currentPath === '/sell' ? 'text-blue-800 bg-white' : 'text-white hover:bg-blue-600']">
-              卖房
-            </router-link>
+            
+            <!-- 需登录才显示的菜单项 -->
+            <template v-if="isLoggedIn">
+              <router-link to="/view" class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                :class="[currentPath === '/view' ? 'text-blue-800 bg-white' : 'text-white hover:bg-blue-600']">
+                看房
+              </router-link>
+              <router-link to="/sell" class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                :class="[currentPath === '/sell' ? 'text-blue-800 bg-white' : 'text-white hover:bg-blue-600']">
+                卖房
+              </router-link>
+            </template>
           </div>
         </div>
 

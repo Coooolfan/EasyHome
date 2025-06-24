@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, watch, onUnmounted, ref } from 'vue';
+import { computed, watch, onUnmounted, ref, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
+
+// 获取路由器实例
+const router = useRouter();
+
+// 为内容区域添加引用，指定正确的类型
+const contentRef = ref<HTMLDivElement | null>(null);
 
 // 定义房源类型
 interface House {
@@ -42,6 +49,12 @@ const closeModal = () => {
 // 切换标签
 const switchTab = (tab: string) => {
     activeTab.value = tab
+    // 切换标签时，重置滚动位置
+    nextTick(() => {
+        if (contentRef.value) {
+            contentRef.value.scrollTop = 0;
+        }
+    });
 }
 
 // 格式化价格
@@ -88,6 +101,20 @@ const priceLevel = computed(() => {
     return '高端豪宅'
 })
 
+// 跳转到看房预约页面
+const goToViewHouse = () => {
+    if (props.house) {
+        // 关闭当前模态框
+        closeModal();
+        
+        // 跳转到看房页面并携带房屋ID
+        router.push({
+            path: '/view',
+            query: { houseId: props.house.id.toString() }
+        });
+    }
+}
+
 // 当模态框打开时阻止背景滚动
 const stopBodyScroll = (isOpen: boolean) => {
     if (isOpen) {
@@ -103,6 +130,13 @@ watch(() => props.show, (newVal) => {
     if (newVal) {
         // 重置到默认标签
         activeTab.value = 'details'
+        
+        // 重置滚动位置
+        nextTick(() => {
+            if (contentRef.value) {
+                contentRef.value.scrollTop = 0;
+            }
+        });
     }
 }, { immediate: true })
 
@@ -122,7 +156,7 @@ onUnmounted(() => {
             <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl transition-all duration-300 transform"
                 :class="show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'"
                 @click.stop>
-                <div v-if="house">
+                <div v-if="house" class="flex flex-col h-full">
                     <!-- 模态框头部 - 使用更大的图片和渐变叠加 -->
                     <div class="relative">
                         <div class="relative h-80 overflow-hidden">
@@ -215,20 +249,11 @@ onUnmounted(() => {
                                 ]">
                                 房源描述
                             </button>
-                            <button @click="switchTab('contact')"
-                                :class="[
-                                    'py-4 px-1 border-b-2 text-sm font-medium',
-                                    activeTab === 'contact'
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                ]">
-                                联系咨询
-                            </button>
                         </nav>
                     </div>
 
-                    <!-- 模态框内容区域 -->
-                    <div class="p-6 overflow-y-auto" style="max-height: 50vh;">
+                    <!-- 模态框内容区域 - 添加ref和增加底部内边距 -->
+                    <div ref="contentRef" class="p-6 pb-32 overflow-y-auto flex-grow" style="max-height: calc(50vh);">
                         <!-- 详情标签页 -->
                         <div v-if="activeTab === 'details'">
                             <!-- 房屋详情 - 更有组织的信息展示 -->
@@ -288,8 +313,8 @@ onUnmounted(() => {
                             </div>
                         </div>
 
-                        <!-- 描述标签页 -->
-                        <div v-else-if="activeTab === 'description'" class="space-y-6">
+                        <!-- 描述标签页 - 增加底部边距确保可见性 -->
+                        <div v-else-if="activeTab === 'description'" class="space-y-6 mb-6">
                             <!-- 房源描述 - 更丰富的内容 -->
                             <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -331,7 +356,7 @@ onUnmounted(() => {
                                 </div>
                             </div>
 
-                            <!-- 推荐理由 - 新增 -->
+                            <!-- 推荐理由 - 新增足够的底部边距 -->
                             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 shadow-sm border border-blue-100">
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -352,81 +377,10 @@ onUnmounted(() => {
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 联系标签页 -->
-                        <div v-else-if="activeTab === 'contact'">
-                            <!-- 联系信息 - 更专业的展示 -->
-                            <div class="bg-gradient-to-b from-white to-gray-50 rounded-xl p-6 shadow-sm border border-gray-100">
-                                <div class="flex flex-col items-center mb-6">
-                                    <div class="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center mb-4">
-                                        <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="font-medium text-xl mb-1">李经理</p>
-                                        <p class="text-gray-600">资深置业顾问 · 5年经验</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- 联系方式 -->
-                                <div class="space-y-4">
-                                    <div class="flex items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                                            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-500">电话咨询</p>
-                                            <p class="font-medium text-lg">13800138000</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                                            <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-500">微信咨询</p>
-                                            <p class="font-medium text-lg">LiManager</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- 预约看房表单 -->
-                                <div class="mt-8 bg-white p-5 rounded-lg border border-gray-100 shadow-sm">
-                                    <h4 class="text-lg font-medium text-gray-900 mb-4">预约看房</h4>
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">您的姓名</label>
-                                            <input type="text" 
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                                                placeholder="请输入您的姓名">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
-                                            <input type="tel" 
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                                                placeholder="请输入您的联系电话">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">预约时间</label>
-                                            <input type="date" 
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- 底部操作条 - 固定在底部 -->
-                    <div class="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-between shadow-md z-10">
                         <!-- 分享和收藏按钮 -->
                         <div class="flex space-x-3">
                             <button class="flex items-center space-x-1 px-3 py-2 bg-gray-100 rounded-md text-gray-700 hover:bg-gray-200 transition-colors">
@@ -445,8 +399,8 @@ onUnmounted(() => {
                             </button>
                         </div>
                         
-                        <!-- 预约看房按钮 -->
-                        <button @click="switchTab('contact')"
+                        <!-- 预约看房按钮 - 使用goToViewHouse方法 -->
+                        <button @click="goToViewHouse"
                             class="flex-1 max-w-[200px] ml-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg font-medium">
                             <span class="flex items-center justify-center">
                                 <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -473,5 +427,26 @@ onUnmounted(() => {
 .fade-leave-to {
     opacity: 0;
     transform: scale(0.95);
+}
+
+/* 增加滚动优化 */
+.overflow-y-auto {
+    -webkit-overflow-scrolling: touch; /* 提高移动端滚动体验 */
+    scroll-behavior: smooth; /* 平滑滚动效果 */
+    scrollbar-width: thin; /* Firefox 自定义滚动条 */
+}
+
+/* Chrome/Safari 自定义滚动条 */
+.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
 }
 </style>
