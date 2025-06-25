@@ -79,13 +79,6 @@ public class LLMServiceImpl implements LLMService {
                 .map(resp -> {
                     if (resp.isFinished())
                         chatSession.getChatContent().add(resp.getAggregationMessage());
-
-                    if ("stop".equals(resp.getChoices().getFirst().getFinishReason())) {
-                        // TODO 如果是stop原因，直接返回, 关闭这个SSE
-                        log.info("Received stop signal, ending stream for {}", message.getUuid());
-                        throw  new RuntimeException("<UNK>");
-                    }
-
                     log.info("{}:isfinished:{},content: {}", message.getUuid(), resp.isFinished(), resp.getMessage().getContent());
                     return new StreamChatResp(
                             resp.getMessage().getContent(),
