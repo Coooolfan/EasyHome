@@ -1,6 +1,6 @@
-package com.coooolfan.easyhome.pojo;
+package com.coooolfan.easyhome.constant;
 
-public class CONSTANT {
+public class LLMConstant {
     public static final String RAG_REWRITE = """
             Given the following conversation and a follow-up question, rephrase the follow up question to be a standalone question, in its original language. Keep as much details as possible from previous messages. Keep entity names and all. 
             the chat history:

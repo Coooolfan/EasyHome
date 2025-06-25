@@ -1,8 +1,10 @@
 package com.coooolfan.easyhome.controller;
 
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import com.coooolfan.easyhome.pojo.dto.LoginDTO;
 import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
+import com.coooolfan.easyhome.pojo.entity.SysUser;
 import com.coooolfan.easyhome.response.Result;
 import com.coooolfan.easyhome.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @version 0.0.1
  **/
 @Slf4j
-@Tag(name = "鉴权接口组")
+@Tag(name = "用户鉴权接口组")
 @RestController
 @RequestMapping("/api/user")
 public class UserController {

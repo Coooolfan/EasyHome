@@ -39,4 +39,12 @@ public interface HouseVecMapper extends BaseMapper<HouseVec> {
      */
     @Select("SELECT house_id FROM houses_vec ORDER BY embedding <-> #{embedding}::vector LIMIT #{limit}")
     List<Long> findSimilarHouses(@Param("embedding") String embedding, @Param("limit") int limit);
+
+    /**
+     * 根据房屋ID更新向量数据
+     * @param houseId 房屋ID
+     * @param embedding 向量数据
+     */
+    @Update("UPDATE houses_vec SET embedding = #{embedding}::vector WHERE house_id = #{houseId}")
+    void updateHouseVec(@Param("houseId") Long houseId, @Param("embedding") String embedding);
 } 
