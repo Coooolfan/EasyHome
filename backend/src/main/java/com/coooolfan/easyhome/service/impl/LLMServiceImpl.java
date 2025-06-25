@@ -1,6 +1,6 @@
 package com.coooolfan.easyhome.service.impl;
 
-import com.coooolfan.easyhome.pojo.CONSTANT;
+import com.coooolfan.easyhome.constant.LLMConstant;
 import com.coooolfan.easyhome.pojo.dto.LLMStreamDTO;
 import com.coooolfan.easyhome.pojo.vo.StreamChatResp;
 import com.coooolfan.easyhome.service.HouseService;
@@ -22,8 +22,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 @Slf4j
 //@Service
@@ -66,7 +64,7 @@ public class LLMServiceImpl implements LLMService {
 
         } else {
             chatSession = new ChatSession(message.getUuid(), false, new ArrayList<>());
-            chatSession.getChatContent().add(new SystemMessage(CONSTANT.SYSTEM_MESSAGE));
+            chatSession.getChatContent().add(new SystemMessage(LLMConstant.SYSTEM_MESSAGE));
             chatSession.setSteaming(true);
             // 浅拷贝聊天记录
             chatHistory = new ArrayList<>(chatSession.getChatContent());

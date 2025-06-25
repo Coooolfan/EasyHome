@@ -4,21 +4,27 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.coooolfan.easyhome.constant.HouseConstant;
 import com.coooolfan.easyhome.mapper.HouseMapper;
 import com.coooolfan.easyhome.mapper.HouseVecMapper;
-import com.coooolfan.easyhome.pojo.CONSTANT;
+import com.coooolfan.easyhome.constant.LLMConstant;
+import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
+import com.coooolfan.easyhome.pojo.entity.HouseVec;
 import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
 import com.coooolfan.easyhome.service.HouseService;
 import com.coooolfan.easyhome.utils.EasyHomeUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.noear.solon.ai.chat.ChatModel;
 import org.noear.solon.ai.chat.ChatRole;
 import org.noear.solon.ai.chat.message.ChatMessage;
 import org.noear.solon.ai.embedding.EmbeddingModel;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -31,6 +37,7 @@ import java.util.List;
  * @version 0.0.1
  **/
 @Service
+@Slf4j
 @AllArgsConstructor
 public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements HouseService {
 
@@ -62,14 +69,16 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
     public String getHousesDescByVectorSearch(ArrayList<ChatMessage> historyMessage, ChatMessage question, int limit) {
         StringBuilder ragPromptBuilder = new StringBuilder();
         for (ChatMessage chatMessage : historyMessage) {
-            if (ChatRole.ASSISTANT == chatMessage.getRole())
+            if (ChatRole.ASSISTANT == chatMessage.getRole()) {
                 ragPromptBuilder.append("ASSISTANT: \n").append(chatMessage.getContent());
+            }
 
-            if (ChatRole.USER == chatMessage.getRole())
+            if (ChatRole.USER == chatMessage.getRole()) {
                 ragPromptBuilder.append("USER: \n").append(chatMessage.getContent()).append("\n");
+            }
 
         }
-        String ragPrompt = String.format(CONSTANT.RAG_REWRITE, ragPromptBuilder, question.getContent());
+        String ragPrompt = String.format(LLMConstant.RAG_REWRITE, ragPromptBuilder, question.getContent());
         try {
             val rewriteResp = rewriteModel.prompt(ragPrompt).call();
             val regQuestion = rewriteResp.getAggregationMessage().getContent();
@@ -94,6 +103,60 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
         }
         return String.format("<authoritative-information>\n%s\n</authoritative-information>",sb);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addHouseWithVec(HouseDTO houseDTO) {
+        House house = new House();
+        BeanUtils.copyProperties(houseDTO, house);
+        try {
+            if (this.save(house)) {
+                val embedding = embed.input(house
+                                .toString()).call()
+                        .getData().getFirst()
+                        .getEmbedding();
+                houseVecMapper.insertHouseVec(house.getId(), Arrays.toString(embedding));
+            }
+        }catch (Exception e) {
+            log.error(HouseConstant.FAIL_ADD , e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeWithVecById(Long id) {
+        houseMapper.deleteById(id);
+        QueryWrapper<HouseVec> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("house_id", id);
+        houseVecMapper.delete(queryWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateHouseWithVec(Long id,HouseDTO houseDTO) {
+        House house = new House();
+        BeanUtils.copyProperties(houseDTO, house);
+        house.setId(id);
+
+        if (house.getId() == null) {
+            throw new IllegalArgumentException(HouseConstant.ID_CANNOT_BE_NULL);
+        }
+
+        try {
+            int rows = houseMapper.updateById(house);
+            if (rows > 0) {
+                val embedding = embed.input(house.toString()).call()
+                        .getData().getFirst().getEmbedding();
+                String embeddingStr = Arrays.toString(embedding);
+                houseVecMapper.updateHouseVec(house.getId(), embeddingStr);
+            }
+        } catch (Exception e) {
+            log.error(HouseConstant.FAIL_UPDATE , e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
 
 
     private QueryWrapper<House> buildQueryWrapper(HouseQueryVO queryVO) {
