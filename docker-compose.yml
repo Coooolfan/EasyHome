@@ -12,7 +12,18 @@ services:
       - "5432:5432"
     volumes:
       - easyhome-postgres-data:/var/lib/postgresql/data
+      
+  redis:
+    image: redis:7-alpine
+    container_name: easyhome-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - easyhome-redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
 
 volumes:
   easyhome-postgres-data:
+    driver: local
+  easyhome-redis-data:
     driver: local

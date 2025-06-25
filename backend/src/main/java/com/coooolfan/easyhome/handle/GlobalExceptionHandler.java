@@ -1,8 +1,10 @@
 package com.coooolfan.easyhome.handle;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotRoleException;
 import com.coooolfan.easyhome.exception.AuthException;
 import com.coooolfan.easyhome.exception.BaseException;
-import com.coooolfan.easyhome.exception.ParamException;
+import com.coooolfan.easyhome.exception.RegisterException;
 import com.coooolfan.easyhome.response.Code;
 import com.coooolfan.easyhome.response.Result;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -39,9 +41,21 @@ public class GlobalExceptionHandler {
         return Result.unauthorized(ex.getMessage());
     }
 
-    @ExceptionHandler(ParamException.class)
-    public Result<String> paramExceptionHandler(ParamException ex) {
+    @ExceptionHandler(RegisterException.class)
+    public Result<String> paramExceptionHandler(RegisterException ex) {
         log.error("参数异常：{}", ex.getMessage());
         return new Result<>(Code.BAD_REQUEST, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(NotLoginException.class)
+    public Result<String> notLoginExceptionHandler(NotLoginException ex) {
+        log.error("token已过期：{}", ex.getMessage());
+        return new Result<>(Code.UNAUTHORIZED, "请先登录", null);
+    }
+
+    @ExceptionHandler(NotRoleException.class)
+    public Result<String> notRoleExceptionHandler(NotRoleException ex) {
+        log.error("权限不足：{}", ex.getMessage());
+        return new Result<>(Code.FORBIDDEN, "权限不足", null);
     }
 }
