@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: Postgresql 地址
+    username: 用户名
+    password: 密码
+  kafka:
+    bootstrap-servers: kafka地址
+  data:
+    redis:
+      host: 地址
+      port: 端口
+
+llm:
+  api-key: 密钥
+
+embed:
+  api-key: 密钥
+
+aliyun:
+  oss:
+    endpoint: 节点
+    aliDomain: 域名
+    accessKeyId: ID
+    accessKeySecret: 密钥
+    bucketName: bucket名字

@@ -1,11 +1,33 @@
 spring:
+  profiles:
+    active: dev 
   application:
     name: easyhome
+  kafka:
+    consumer:
+      group-id: easyhome-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  data:
+    redis:
+      database: 1
+      timeout: 10s
+      lettuce:
+        pool:
+          max-active: 200
+          max-wait: -1ms
+          max-idle: 10
+          min-idle: 0
   datasource:
-    url: jdbc:postgresql://localhost:5432/easyhome
-    username: easyhome
-    password: easyhome
     type: com.alibaba.druid.pool.DruidDataSource
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 server:
   port: 8080
 springdoc:
@@ -17,12 +39,11 @@ springdoc:
   packages-to-scan: com.coooolfan.easyhome.pojo,com.coooolfan.easyhome.controller
 llm:
   api-url: https://api.deepseek.com/chat/completions
-  api-key: sk-36560f3847b44472862877c04f6306d3
   model: deepseek-chat
 embed:
-#  同一环境确保模型一致，确保返回1536维向量
-#  OPENAI兼容端点 类似于
-  api-url: https://api.openai.com/v1/embeddings
-  api-key:
+  #  同一环境确保模型一致，确保返回1536维向量
+  #  OPENAI兼容端点 类似于
+  api-url: https://api.etak.cn/v1/embeddings
   model: text-embedding-3-small
-
+aliyun:
+  oss:
