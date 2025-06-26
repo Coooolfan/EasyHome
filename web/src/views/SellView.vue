@@ -208,7 +208,7 @@ const toggleTag = (tag: string) => {
   }
 }
 
-// 提交表单
+// 提交表单函数 - 修改部分
 const submitForm = async () => {
   if (!validateCurrentStep()) return
   
@@ -216,20 +216,40 @@ const submitForm = async () => {
   errorMessage.value = ''
   
   try {
+    // 确保计算单价
+    const unitPrice = calculateUnitPrice()
+    
     // 准备提交数据
     const submitData = {
       ...formData,
-      unit_price: calculateUnitPrice(),
-      tag: formData.tag.join(',') // 将标签数组转为逗号分隔的字符串
+      unit_price: unitPrice, // 使用unit_price字段名
+      unitPrice: unitPrice,  // 同时保留unitPrice驼峰命名(防止后端使用驼峰命名)
+      buildYear: formData.build_year,
+      tag: formData.tag 
     }
     
-    // 发送请求
-    const response = await axios.post('/api/houses', submitData)
+    // 确保单价不为null
+    if (!submitData.unit_price || submitData.unit_price === 0) {
+      // 如果价格和面积都存在，强制计算单价
+      if (formData.price && formData.area && formData.area > 0) {
+        submitData.unit_price = Math.round(formData.price / formData.area);
+        submitData.unitPrice = submitData.unit_price;
+      } else {
+        // 如果无法计算，设置一个默认值防止null
+        submitData.unit_price = 0; 
+        submitData.unitPrice = 0;
+      }
+    }
+    
+    console.log("提交数据:", submitData); // 调试用
+    
+    // 发送请求到发布房源接口
+    const response = await axios.post('/api/houses/publish', submitData)
     
     // 处理成功响应
-    successMessage.value = '房源发布成功！'
+    successMessage.value = '房源发布成功！房源信息已推送到审核队列。'
     setTimeout(() => {
-      router.push('/my-listings') // 发布成功后跳转到我的房源列表
+      router.push('/my-listings')
     }, 2000)
     
   } catch (error: any) {
