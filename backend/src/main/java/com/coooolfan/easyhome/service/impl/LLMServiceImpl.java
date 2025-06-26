@@ -2,7 +2,7 @@ package com.coooolfan.easyhome.service.impl;
 
 import com.coooolfan.easyhome.constant.LLMConstant;
 import com.coooolfan.easyhome.pojo.dto.LLMStreamDTO;
-import com.coooolfan.easyhome.pojo.vo.StreamChatResp;
+import com.coooolfan.easyhome.pojo.dto.StreamChatResp;
 import com.coooolfan.easyhome.service.HouseService;
 import com.coooolfan.easyhome.service.LLMService;
 import com.coooolfan.easyhome.utils.ChatSession;

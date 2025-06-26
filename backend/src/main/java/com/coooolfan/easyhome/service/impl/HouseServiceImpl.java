@@ -11,7 +11,7 @@ import com.coooolfan.easyhome.constant.LLMConstant;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.HouseVec;
-import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
+import com.coooolfan.easyhome.pojo.dto.HouseQueryDTO;
 import com.coooolfan.easyhome.service.HouseService;
 import com.coooolfan.easyhome.utils.EasyHomeUtils;
 import lombok.AllArgsConstructor;
@@ -50,7 +50,7 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
     private ChatModel rewriteModel;
 
     @Override
-    public IPage<House> getByPage(Page<House> page, HouseQueryVO queryVO) {
+    public IPage<House> getByPage(Page<House> page, HouseQueryDTO queryVO) {
         QueryWrapper<House> queryWrapper = buildQueryWrapper(queryVO);
         return this.page(page, queryWrapper);
     }
@@ -159,7 +159,7 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
 
 
 
-    private QueryWrapper<House> buildQueryWrapper(HouseQueryVO queryVO) {
+    private QueryWrapper<House> buildQueryWrapper(HouseQueryDTO queryVO) {
         QueryWrapper<House> queryWrapper = new QueryWrapper<>();
 
         if (queryVO != null) {

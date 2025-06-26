@@ -1,11 +1,12 @@
 package com.coooolfan.easyhome.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
-import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.dto.LoginDTO;
+import com.coooolfan.easyhome.pojo.dto.ProfileDTO;
 import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
+import com.coooolfan.easyhome.pojo.vo.UserVO;
 import com.coooolfan.easyhome.response.Result;
-import com.coooolfan.easyhome.message.KafkaProducerService;
 import com.coooolfan.easyhome.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,10 +14,7 @@ import jakarta.annotation.Resource;
 import jakarta.security.auth.message.AuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author lima
@@ -57,6 +55,45 @@ public class UserController {
         return Result.ok("注册成功");
     }
 
+    @SaCheckLogin
+    @GetMapping("/getUserInfo")
+    @Operation(summary = "获取用户信息")
+    public Result<UserVO> getUserInfo() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        log.info("获取用户信息：{}", userId);
+        UserVO userVO = sysUserService.getUserInfo(userId);
+        return Result.ok(userVO);
+    }
 
+    @SaCheckLogin
+    @PutMapping("/updateProfile")
+    @Operation(summary = "更新用户信息")
+    public Result<String> updateProfile(@Validated @RequestBody ProfileDTO profileDTO) {
+        Long userId = StpUtil.getLoginIdAsLong();
+        log.info("更新用户信息：{}", profileDTO);
+        sysUserService.updateProfileById(userId, profileDTO);
+        return Result.ok("更新成功");
+    }
 
+    @SaCheckLogin
+    @PutMapping("/updatePassword")
+    @Operation(summary = "更新用户密码")
+    public Result<String> updatePassword(@RequestParam String oldPassword,
+                                         @RequestParam String newPassword) {
+        Long userId = StpUtil.getLoginIdAsLong();
+        log.info("更新用户密码：{}", userId);
+        sysUserService.updatePasswordById(userId, oldPassword, newPassword);
+        return Result.ok("密码更新成功");
+    }
+
+    @SaCheckLogin
+    @DeleteMapping("/delete")
+    @Operation(summary = "删除用户账号")
+    public Result<String> deleteUser() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        log.info("删除用户账号：{}", userId);
+        sysUserService.removeById(userId);
+        StpUtil.logout();
+        return Result.ok("账号已删除");
+    }
 }

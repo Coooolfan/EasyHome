@@ -15,9 +15,9 @@ public interface HouseRecordService
     void publish(Long loginId, HouseDTO dto);
     void markAsReceived(HouseDTO dto);
     List<HouseRecord> getByUserId(Long loginId);
-    List<HouseRecord> getPendingRecords();
+
     void review(Long id, boolean pass, String reason);
     List<HouseRecord> getReceivedRecords();
-
-    void removeWithVecById(Long id);
+    List<HouseRecord> getPendingRecords();
+    List<HouseRecord> getApprovedRecords();
 }

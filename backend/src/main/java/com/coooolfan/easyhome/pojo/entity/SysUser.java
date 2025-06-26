@@ -24,7 +24,7 @@ public class SysUser{
     @TableId(value = "id",type = IdType.AUTO)
     private Long id;
     private final String username;
-    private final String password;
+    private String password;
     private final String role;
     private final String phone;
     private final String email;

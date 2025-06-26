@@ -80,6 +80,14 @@ public class HouseRecordServiceImpl
     }
 
     @Override
+    public List<HouseRecord> getApprovedRecords() {
+        return this.lambdaQuery()
+                .eq(HouseRecord::getStatus, PublishConstant.APPROVED)
+                .orderByDesc(HouseRecord::getCreatedAt)
+                .list();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void review(Long id, boolean pass, String reason) {
         HouseRecord record = this.getById(id);
@@ -136,10 +144,5 @@ public class HouseRecordServiceImpl
                 .list();
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void removeWithVecById(Long id) {
-        this.removeById(id);
-    }
 
 }

@@ -12,4 +12,5 @@ public class AuthConstant {
     public final static String SOMETHING_BLANK = "用户名、密码和邮箱不能为空";
     public final static String USERNAME_ALREADY_EXISTS = "用户名已存在";
     public final static String REGISTER_FAIL = "注册失败，请稍后再试";
+    public final static String OLD_PASSWORD_ERROR = "旧密码错误";
 }

@@ -2,8 +2,10 @@ package com.coooolfan.easyhome.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.coooolfan.easyhome.pojo.dto.LoginDTO;
+import com.coooolfan.easyhome.pojo.dto.ProfileDTO;
 import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
 import com.coooolfan.easyhome.pojo.entity.SysUser;
+import com.coooolfan.easyhome.pojo.vo.UserVO;
 import jakarta.security.auth.message.AuthException;
 
 
@@ -15,4 +17,10 @@ public interface SysUserService
         extends IService<SysUser> {
     Long login(LoginDTO loginDTO) throws AuthException;
     void register(RegisterDTO registerDTO);
+
+    UserVO getUserInfo(Long userId);
+
+    void updateProfileById(Long userId, ProfileDTO profileDTO);
+
+    void updatePasswordById(Long userId, String oldPassword, String newPassword);
 }

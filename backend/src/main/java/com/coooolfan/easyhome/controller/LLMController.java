@@ -1,7 +1,7 @@
 //package com.coooolfan.easyhome.controller;
 //
 //import com.coooolfan.easyhome.pojo.dto.LLMStreamDTO;
-//import com.coooolfan.easyhome.pojo.vo.StreamChatResp;
+//import com.coooolfan.easyhome.pojo.dto.StreamChatResp;
 //import com.coooolfan.easyhome.service.HouseService;
 //import com.coooolfan.easyhome.service.LLMService;
 //import io.swagger.v3.oas.annotations.Operation;

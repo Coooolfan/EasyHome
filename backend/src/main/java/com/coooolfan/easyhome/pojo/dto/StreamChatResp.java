@@ -1,4 +1,4 @@
-package com.coooolfan.easyhome.pojo.vo;
+package com.coooolfan.easyhome.pojo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

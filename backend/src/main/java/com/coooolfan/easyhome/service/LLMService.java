@@ -1,7 +1,7 @@
 package com.coooolfan.easyhome.service;
 
 import com.coooolfan.easyhome.pojo.dto.LLMStreamDTO;
-import com.coooolfan.easyhome.pojo.vo.StreamChatResp;
+import com.coooolfan.easyhome.pojo.dto.StreamChatResp;
 import reactor.core.publisher.Flux;
 
 public interface LLMService {

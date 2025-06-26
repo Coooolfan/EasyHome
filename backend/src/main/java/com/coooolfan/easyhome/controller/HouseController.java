@@ -3,16 +3,14 @@ package com.coooolfan.easyhome.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.coooolfan.easyhome.mapper.HouseRecordMapper;
 import com.coooolfan.easyhome.message.KafkaProducerService;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.HouseRecord;
-import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
+import com.coooolfan.easyhome.pojo.dto.HouseQueryDTO;
 import com.coooolfan.easyhome.response.Result;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import com.coooolfan.easyhome.service.HouseService;
-import com.coooolfan.easyhome.service.HouseUserRelationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -48,7 +46,7 @@ public class HouseController {
     public Result<IPage<House>> getHousesPage(
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
-            HouseQueryVO queryVO) {
+            HouseQueryDTO queryVO) {
         log.info("vo: {}", queryVO);
         Page<House> page = new Page<>(current, size);
         IPage<House> housePage = houseService.getByPage(page, queryVO);
@@ -77,6 +75,22 @@ public class HouseController {
         log.info("更新房屋信息: {}", houseDTO);
         houseService.updateHouseWithVec(id,houseDTO);
         return Result.ok(null);
+    }
+
+    @GetMapping("/getById/{id}")
+    @Operation(summary = "根据ID查询房屋信息")
+    public Result<House> getHouseById(@PathVariable Long id) {
+        log.info("查询房屋信息: {}", id);
+        House house = houseService.getById(id);
+        return Result.ok(house);
+    }
+
+    @GetMapping("/published")
+    @Operation(summary = "查询全部已发布的房源信息")
+    public Result<List<House>> getPublishedHouses() {
+        log.info("查询全部已发布的房源信息");
+        List<House> houses = houseService.list();
+        return Result.ok(houses);
     }
 
     @PostMapping("/publish")

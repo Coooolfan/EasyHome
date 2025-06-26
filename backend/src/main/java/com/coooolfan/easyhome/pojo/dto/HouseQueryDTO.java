@@ -1,4 +1,4 @@
-package com.coooolfan.easyhome.pojo.vo;
+package com.coooolfan.easyhome.pojo.dto;
 
 import lombok.Data;
 
@@ -7,7 +7,7 @@ import lombok.Data;
  * @version 0.0.1
  **/
 @Data
-public class HouseQueryVO {
+public class HouseQueryDTO {
     private String title;
     private String address;
     private Integer minPrice;
