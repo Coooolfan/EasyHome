@@ -112,3 +112,29 @@ CREATE TABLE house_user_relation (
 -- 添加索引以提高查询性能
 CREATE INDEX idx_house_user_relation_house_id ON house_user_relation(house_id);
 CREATE INDEX idx_house_user_relation_user_id ON house_user_relation(user_id);
+
+
+CREATE TABLE user_favorites (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    house_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_user_house UNIQUE (user_id, house_id)
+);
+
+-- 添加注释
+COMMENT ON TABLE user_favorites IS '用户收藏表';
+COMMENT ON COLUMN user_favorites.user_id IS '用户ID';
+COMMENT ON COLUMN user_favorites.house_id IS '房源ID';
+COMMENT ON COLUMN user_favorites.created_at IS '创建时间';
+COMMENT ON CONSTRAINT uk_user_house ON user_favorites IS '确保用户不会重复收藏同一房源';
+
+-- 添加索引以提高查询性能
+CREATE INDEX idx_user_favorites_user_id ON user_favorites(user_id);
+CREATE INDEX idx_user_favorites_house_id ON user_favorites(house_id);
+
+-- 添加外键约束
+ALTER TABLE user_favorites ADD CONSTRAINT fk_user_favorites_user_id 
+    FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE;
+ALTER TABLE user_favorites ADD CONSTRAINT fk_user_favorites_house_id 
+    FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE CASCADE;

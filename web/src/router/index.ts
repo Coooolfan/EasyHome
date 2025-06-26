@@ -50,6 +50,15 @@ const router = createRouter({
             path: '/settings',
             name: 'settings',
             component: () => import('../views/SettingsView.vue'),
+        }, 
+        {
+            path: '/favorites',
+            name: 'favorites',
+            component: () => import('../views/FavoritesView.vue'),
+            meta: {
+                requiresAuth: true,
+                title: '我的收藏 - EasyHome'
+            }
         }
     ],
 })
