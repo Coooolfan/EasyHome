@@ -36,6 +36,25 @@ const router = createRouter({
           path: '/house-manage',
           name: 'HouseManage',
           component: () => import('../views/HouseManageView.vue')
+        },
+        // 🆕 新增卖房管理路由
+        {
+          path: '/sell-house-manage',
+          name: 'SellHouseManage',
+          component: () => import('../views/SellHouseManageView.vue'),
+          meta: { title: '卖房管理' }
+        },
+        {
+          path: '/profile',
+          name: 'Profile',
+          component: () => import('@/views/ProfileView.vue'),
+          meta: { title: '个人中心', requiresAuth: true }
+        },
+        {
+          path: '/settings',
+          name: 'Settings',
+          component: () => import('@/views/SettingsView.vue'),
+          meta: { title: '系统设置', requiresAuth: true, roles: ['super_admin', 'admin'] }
         }
       ]
     }

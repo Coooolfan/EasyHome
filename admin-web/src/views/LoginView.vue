@@ -136,7 +136,7 @@ onMounted(() => {
 .title-section {
   width: 50%;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667cea 0%, #4ba2a2 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -262,7 +262,7 @@ onMounted(() => {
   width: 400px;
   padding: 60px 40px;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
+  border-radius: 30px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   /* 表单初始状态 */
   transform: translateY(30px);
@@ -276,7 +276,7 @@ onMounted(() => {
 }
 
 .login-form h2 {
-  font-size: 2.5rem;
+  font-size: x-large;
   color: #333;
   text-align: center;
   margin-bottom: 2rem;
@@ -289,11 +289,11 @@ onMounted(() => {
 }
 
 :deep(.el-input__wrapper) {
-  border-radius: 10px;
+  border-radius: 30px;
   border: 2px solid #e1e5e9;
   box-shadow: none;
   transition: all 0.3s ease;
-  padding: 15px 20px;
+  padding: 1px 20px;
 }
 
 :deep(.el-input__wrapper:hover) {
@@ -312,7 +312,7 @@ onMounted(() => {
 .login-btn {
   width: 100%;
   padding: 15px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66c3ea 0%, #4b5ca2 100%);
   border: none;
   border-radius: 10px;
   font-size: 1.1rem;

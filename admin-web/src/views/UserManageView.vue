@@ -45,7 +45,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="registerTime" label="注册时间" />
+         <!-- 修改注册时间列 -->
+  <el-table-column prop="registerTime" label="注册时间" width="120">
+    <template #default="scope">
+      {{ formatDate(scope.row.registerTime) }}
+    </template>
+  </el-table-column>
         <el-table-column label="操作" width="250">
           <template #default="scope">
             <el-button size="small" @click="handleView(scope.row)">
@@ -134,8 +139,9 @@
             {{ currentUser.status === 'active' ? '正常' : '禁用' }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="注册时间">{{ currentUser.registerTime }}</el-descriptions-item>
-        <el-descriptions-item label="最后登录">{{ currentUser.lastLoginTime || '从未登录' }}</el-descriptions-item>
+        <!-- 详情页保持完整时间 -->
+  <el-descriptions-item label="注册时间">{{ formatDateTime(currentUser.registerTime) }}</el-descriptions-item>
+  <el-descriptions-item label="最后登录">{{ formatDateTime(currentUser.lastLoginTime) || '从未登录' }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
   </div>
@@ -161,7 +167,15 @@ const dialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
+// 时间格式化函数
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  return dateStr.split(' ')[0] // 只返回日期部分，如 "2024-01-15"
+}
 
+const formatDateTime = (dateStr: string) => {
+  return dateStr || '' // 返回完整时间用于详情页
+}
 const searchForm = reactive({
   username: '',
   phone: '',
