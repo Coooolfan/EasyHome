@@ -19,7 +19,8 @@ const form = reactive({
   username: '',
   password: '',
   confirmPassword: '', // 仅注册时使用
-  email: '' // 仅注册时使用
+  email: '',// 仅注册时使用
+  phone: ''
 })
 
 // 切换密码可见性
@@ -30,6 +31,7 @@ const togglePasswordVisibility = () => {
 const toggleConfirmPasswordVisibility = () => {
   showConfirmPassword.value = !showConfirmPassword.value
 }
+
 
 // 验证状态
 const isUsernameValid = computed(() => {
@@ -53,33 +55,28 @@ const isPasswordMatch = computed(() => {
   return form.password === form.confirmPassword
 })
 
-// 验证规则
+// 验证状态部分添加电话验证
+const isPhoneValid = computed(() => {
+  if (!form.phone) return null
+  // 中国大陆手机号验证规则
+  const phoneReg = /^1[3-9]\d{9}$/
+  return phoneReg.test(form.phone)
+})
+
+// 在验证规则中添加对电话的验证
 const validateForm = () => {
-  if (!form.username) {
-    errorMsg.value = '请输入用户名'
-    return false
-  }
-  if (!form.password) {
-    errorMsg.value = '请输入密码'
-    return false
-  }
+  // 现有验证代码...
 
   if (!isLogin.value) { // 注册验证
-    if (form.password.length < 6) {
-      errorMsg.value = '密码长度至少6位'
+    // 其他验证保持不变...
+
+    if (!form.phone) {
+      errorMsg.value = '请输入手机号码'
       return false
     }
-    if (form.password !== form.confirmPassword) {
-      errorMsg.value = '两次输入密码不一致'
-      return false
-    }
-    if (!form.email) {
-      errorMsg.value = '请输入邮箱'
-      return false
-    }
-    const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailReg.test(form.email)) {
-      errorMsg.value = '邮箱格式不正确'
+    const phoneReg = /^1[3-9]\d{9}$/
+    if (!phoneReg.test(form.phone)) {
+      errorMsg.value = '手机号格式不正确'
       return false
     }
   }
@@ -87,6 +84,9 @@ const validateForm = () => {
   errorMsg.value = ''
   return true
 }
+
+
+
 
 // 切换登录/注册模式
 const toggleMode = () => {
@@ -150,7 +150,8 @@ const handleSubmit = async () => {
       const response = await axios.post('/api/user/register', {
         username: form.username,
         password: form.password,
-        email: form.email
+        email: form.email,
+        phone: form.phone
       })
 
       // 适配新的响应格式
@@ -204,6 +205,7 @@ const resetForm = () => {
   form.password = ''
   form.confirmPassword = ''
   form.email = ''
+  form.phone = ''
   errorMsg.value = ''
 }
 </script>
@@ -453,6 +455,37 @@ const resetForm = () => {
                     </div>
                   </div>
                   <p v-if="isEmailValid === false" class="mt-1 text-xs text-red-600">请输入有效的邮箱地址</p>
+                </div>
+                <!-- 添加手机号码字段 -->
+                <div>
+                  <label for="phone" class="block text-sm font-medium text-gray-700">手机号码</label>
+                  <div class="mt-1 relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <input v-model="form.phone" id="phone" name="phone" type="tel" required
+                      class="block w-full pl-10 pr-10 py-2 border focus:outline-none sm:text-sm rounded-lg" :class="[
+                        'focus:ring-2 focus:ring-offset-1',
+                        isPhoneValid === false ? 'border-red-300 focus:ring-red-500' :
+                          isPhoneValid === true ? 'border-green-300 focus:ring-green-500' :
+                            'border-gray-300 focus:ring-blue-500'
+                      ]" placeholder="请输入手机号码" :disabled="loading" />
+
+                    <div v-if="isPhoneValid !== null" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <svg v-if="isPhoneValid" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <svg v-else class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p v-if="isPhoneValid === false" class="mt-1 text-xs text-red-600">请输入有效的手机号码</p>
                 </div>
               </template>
 

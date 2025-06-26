@@ -36,6 +36,16 @@ const router = createRouter({
             name: 'sell',
             component: SellView,
         },
+        {
+            path: '/profile',
+            name: 'profile',
+            component: () => import('../views/ProfileView.vue'),
+        },
+        {
+            path: '/my-listings',
+            name: 'my-listings',
+            component: () => import('../views/MyListingsView.vue'),
+        }
     ],
 })
 

@@ -2,12 +2,15 @@ CREATE TABLE sys_user (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
     email VARCHAR(100) NOT NULL,
     role VARCHAR(100) NOT NULL,
     is_enable BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 -- 新建房源表
 CREATE TABLE houses (
@@ -66,7 +69,7 @@ CREATE TABLE houses_vec (
 CREATE INDEX ON houses_vec USING hnsw(embedding vector_l2_ops);
 
 -- 创建房源推送记录表
-CREATE TABLE house_publish_records (
+CREATE TABLE house_records (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
