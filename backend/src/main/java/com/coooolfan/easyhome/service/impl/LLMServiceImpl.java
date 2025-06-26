@@ -45,15 +45,15 @@ public class LLMServiceImpl implements LLMService {
         ChatSession chatSession;
         if (chatMap.containsKey(message.getUuid())) {
             chatSession = chatMap.get(message.getUuid());
-            if (chatSession.isSteaming()) {
-                log.warn("当前会话正在进行中，请稍后再试");
-                return Flux.just(new StreamChatResp(
-                        "当前会话正在进行中，请稍后再试",
-                        "System",
-                        true,
-                        "当前会话正在进行中，请稍后再试"
-                ));
-            }
+//            if (chatSession.isSteaming()) {
+//                log.warn("当前会话正在进行中，请稍后再试");
+//                return Flux.just(new StreamChatResp(
+//                        "当前会话正在进行中，请稍后再试",
+//                        "System",
+//                        true,
+//                        "当前会话正在进行中，请稍后再试"
+//                ));
+//            }
             chatSession.setSteaming(true);
             // 浅拷贝聊天记录
             chatHistory = new ArrayList<>(chatSession.getChatContent());
@@ -77,8 +77,9 @@ public class LLMServiceImpl implements LLMService {
         log.info("Start stream chat {} connection", message.getUuid());
         return Flux.from(chatModel.prompt(chatHistory).stream())
                 .map(resp -> {
-                    if (resp.isFinished())
+                    if (resp.isFinished()) {
                         chatSession.getChatContent().add(resp.getAggregationMessage());
+                    }
                     log.info("{}:isfinished:{},content: {}", message.getUuid(), resp.isFinished(), resp.getMessage().getContent());
                     return new StreamChatResp(
                             resp.getMessage().getContent(),

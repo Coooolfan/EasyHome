@@ -65,4 +65,31 @@ CREATE TABLE houses_vec (
 
 CREATE INDEX ON houses_vec USING hnsw(embedding vector_l2_ops);
 
+-- 创建房源推送记录表
+CREATE TABLE house_publish_records (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    address VARCHAR(300) NOT NULL,
+    price INTEGER NOT NULL,
+    area INTEGER NOT NULL,
+    unit_price INTEGER NOT NULL,
+    rooms VARCHAR(50) NOT NULL,
+    floor VARCHAR(20),
+    build_year INTEGER,
+    orientation VARCHAR(20),
+    decoration VARCHAR(20),
+    tag VARCHAR(500),  -- 存储标签数组
+    image VARCHAR(500),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',  -- PENDING(待审核), APPROVED(已通过), REJECTED(已拒绝)
+    reason VARCHAR(200),  -- 拒绝原因(如果有)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 添加索引
+CREATE INDEX idx_house_publish_records_user_id ON house_publish_records(user_id);
+CREATE INDEX idx_house_publish_records_status ON house_publish_records(status);
+
+
 

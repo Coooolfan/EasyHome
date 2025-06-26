@@ -1,11 +1,11 @@
 package com.coooolfan.easyhome.controller;
 
-import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.dto.LoginDTO;
 import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
-import com.coooolfan.easyhome.pojo.entity.SysUser;
 import com.coooolfan.easyhome.response.Result;
+import com.coooolfan.easyhome.message.KafkaProducerService;
 import com.coooolfan.easyhome.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,4 +56,7 @@ public class UserController {
         sysUserService.register(registerDTO);
         return Result.ok("注册成功");
     }
+
+
+
 }
