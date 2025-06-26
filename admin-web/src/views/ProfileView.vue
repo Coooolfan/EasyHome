@@ -74,10 +74,23 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import { User, UserFilled, Camera, Check, Refresh } from '@element-plus/icons-vue'
+
+// 定义用户信息接口
+interface UserProfile {
+  username: string
+  realName: string
+  email: string
+  phone: string
+  role: string
+  avatar: string
+  createTime: string
+  lastLogin: string
+}
 
 const userStore = useUserStore()
 
-const userProfile = reactive({
+const userProfile = reactive<UserProfile>({
   username: '',
   realName: '',
   email: '',
@@ -119,15 +132,16 @@ const resetForm = () => {
 }
 
 const loadUserProfile = () => {
-  // 模拟加载用户信息
+  // 从 userStore 获取用户信息，使用安全的属性访问
   const userInfo = userStore.userInfo
+  
   Object.assign(userProfile, {
     username: userInfo.username || '管理员',
-    realName: userInfo.realName || '张三',
+    realName: (userInfo as any).realName || '张三', // 使用类型断言
     email: userInfo.email || 'admin@example.com',
-    phone: userInfo.phone || '13800138000',
+    phone: (userInfo as any).phone || '13800138000', // 使用类型断言
     role: userInfo.role || 'admin',
-    avatar: userInfo.avatar || '',
+    avatar: (userInfo as any).avatar || '', // 使用类型断言
     createTime: '2024-01-01 10:00:00',
     lastLogin: '2024-01-15 09:30:00'
   })
@@ -146,6 +160,8 @@ onMounted(() => {
 .profile-card {
   max-width: 1000px;
   margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
@@ -154,15 +170,18 @@ onMounted(() => {
   gap: 8px;
   font-size: 16px;
   font-weight: 600;
+  color: #303133;
 }
 
 .header-icon {
   color: #409EFF;
+  font-size: 18px;
 }
 
 .profile-content {
   display: flex;
   gap: 40px;
+  padding: 20px 0;
 }
 
 .profile-left {
@@ -174,14 +193,21 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .user-avatar {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 3px solid #fff;
 }
 
 .upload-btn {
   border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 12px;
 }
 
 .profile-right {
@@ -193,6 +219,47 @@ onMounted(() => {
 }
 
 :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #374151;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: #cbd5e1;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #409EFF;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+}
+
+:deep(.el-button) {
+  border-radius: 8px;
   font-weight: 500;
+}
+
+:deep(.el-tag) {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .profile-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .avatar-section {
+    padding: 16px;
+  }
+  
+  .profile-form {
+    max-width: 100%;
+  }
 }
 </style>

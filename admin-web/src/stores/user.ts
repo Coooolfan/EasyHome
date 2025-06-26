@@ -6,6 +6,9 @@ interface UserInfo {
   role: 'super_admin' | 'admin'
   email?: string
   status: 'active' | 'disabled'
+  realName?: string  
+  phone?: string     
+  avatar?: string    
 }
 
 interface LoginForm {
