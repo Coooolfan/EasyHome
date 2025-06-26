@@ -3,6 +3,7 @@ package com.coooolfan.easyhome.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.coooolfan.easyhome.mapper.HouseRecordMapper;
 import com.coooolfan.easyhome.message.KafkaProducerService;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
@@ -11,10 +12,12 @@ import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
 import com.coooolfan.easyhome.response.Result;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import com.coooolfan.easyhome.service.HouseService;
+import com.coooolfan.easyhome.service.HouseUserRelationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -78,6 +81,7 @@ public class HouseController {
 
     @PostMapping("/publish")
     @Operation(summary = "发布房源信息")
+    @Transactional(rollbackFor = Exception.class)
     public Result<String> publishHouse(@RequestBody HouseDTO dto) {
         Long loginId = StpUtil.getLoginIdAsLong();
 
@@ -104,11 +108,10 @@ public class HouseController {
     }
 
     @DeleteMapping("/remove-record")
-    @Operation(summary = "删除发布记录")
+    @Operation(summary = "删除审核记录")
     public Result<String> removePublishRecord(@RequestParam Long id) {
         log.info("删除发布记录: {}", id);
-        // TODO 未处理houses 和 houses_vec 的删除
         houseRecordService.removeById(id);
-        return Result.ok("发布记录已删除");
+        return Result.ok("审核记录已删除");
     }
 }

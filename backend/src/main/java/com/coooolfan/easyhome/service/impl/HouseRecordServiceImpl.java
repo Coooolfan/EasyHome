@@ -6,10 +6,12 @@ import com.coooolfan.easyhome.constant.HouseConstant;
 import com.coooolfan.easyhome.constant.PublishConstant;
 import com.coooolfan.easyhome.mapper.HouseMapper;
 import com.coooolfan.easyhome.mapper.HouseRecordMapper;
+import com.coooolfan.easyhome.mapper.HouseUserRelationMapper;
 import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.HouseRecord;
+import com.coooolfan.easyhome.pojo.entity.HouseUserRelation;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import jakarta.annotation.Resource;
 import lombok.val;
@@ -39,6 +41,9 @@ public class HouseRecordServiceImpl
 
     @Resource
     private EmbeddingModel embed;
+
+    @Resource
+    private HouseUserRelationMapper houseUserRelationMapper;
 
     @Override
     public void publish(Long userId, HouseDTO dto) {
@@ -106,6 +111,11 @@ public class HouseRecordServiceImpl
                         .getData().getFirst()
                         .getEmbedding();
                 houseVecMapper.insertHouseVec(house.getId(), Arrays.toString(embedding));
+
+                HouseUserRelation houseUserRelation = new HouseUserRelation();
+                houseUserRelation.setHouseId(house.getId());
+                houseUserRelation.setUserId(record.getUserId());
+                houseUserRelationMapper.insert(houseUserRelation);
 
             }catch (Exception e) {
                 log.error(HouseConstant.FAIL_ADD);

@@ -95,4 +95,20 @@ CREATE INDEX idx_house_publish_records_user_id ON house_publish_records(user_id)
 CREATE INDEX idx_house_publish_records_status ON house_publish_records(status);
 
 
+-- 创建房屋和用户对应关系表
+CREATE TABLE house_user_relation (
+    id BIGSERIAL PRIMARY KEY,
+    house_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- 外键约束
+    CONSTRAINT fk_house FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE CASCADE,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE
+    
+);
 
+-- 添加索引以提高查询性能
+CREATE INDEX idx_house_user_relation_house_id ON house_user_relation(house_id);
+CREATE INDEX idx_house_user_relation_user_id ON house_user_relation(user_id);
