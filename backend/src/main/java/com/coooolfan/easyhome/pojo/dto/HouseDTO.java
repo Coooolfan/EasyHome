@@ -35,4 +35,5 @@ public class HouseDTO {
     private String image;
     @NotBlank(message = "标签不能为空")
     private List<String> tag;
+    private String phone;
 }

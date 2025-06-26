@@ -57,6 +57,7 @@ public class SysUserServiceImpl
                 .username(registerDTO.getUsername())
                 .password(SaSecureUtil.md5(registerDTO.getPassword()))
                 .email(registerDTO.getEmail())
+                .phone(registerDTO.getPhone())
                 .role(AuthConstant.ROLE_USER)
                 .isEnable(true)
                 .build();

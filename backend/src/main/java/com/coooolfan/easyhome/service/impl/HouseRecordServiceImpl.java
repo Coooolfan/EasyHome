@@ -5,16 +5,17 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coooolfan.easyhome.constant.HouseConstant;
 import com.coooolfan.easyhome.constant.PublishConstant;
 import com.coooolfan.easyhome.mapper.HouseMapper;
-import com.coooolfan.easyhome.mapper.HousePublishRecordMapper;
+import com.coooolfan.easyhome.mapper.HouseRecordMapper;
 import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
-import com.coooolfan.easyhome.pojo.entity.HousePublishRecord;
-import com.coooolfan.easyhome.service.HousePublishRecordService;
+import com.coooolfan.easyhome.pojo.entity.HouseRecord;
+import com.coooolfan.easyhome.service.HouseRecordService;
 import jakarta.annotation.Resource;
 import lombok.val;
 import org.noear.solon.ai.embedding.EmbeddingModel;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +27,9 @@ import java.util.List;
  * @version 0.0.1
  **/
 @Service
-public class HousePublishRecordServiceImpl
-        extends ServiceImpl<HousePublishRecordMapper, HousePublishRecord>
-        implements HousePublishRecordService {
+public class HouseRecordServiceImpl
+        extends ServiceImpl<HouseRecordMapper, HouseRecord>
+        implements HouseRecordService {
 
     @Resource
     private HouseMapper houseMapper;
@@ -41,7 +42,7 @@ public class HousePublishRecordServiceImpl
 
     @Override
     public void publish(Long userId, HouseDTO dto) {
-        HousePublishRecord record = new HousePublishRecord();
+        HouseRecord record = new HouseRecord();
         BeanUtils.copyProperties(dto, record);
         record.setUserId(userId);
         record.setStatus(PublishConstant.PENDING);
@@ -50,33 +51,33 @@ public class HousePublishRecordServiceImpl
 
     @Override
     public void markAsReceived(HouseDTO dto) {
-        LambdaUpdateWrapper<HousePublishRecord> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(HousePublishRecord::getTitle, dto.getTitle())
-                .eq(HousePublishRecord::getAddress, dto.getAddress())
-                .set(HousePublishRecord::getStatus, PublishConstant.RECEIVED);
+        LambdaUpdateWrapper<HouseRecord> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(HouseRecord::getTitle, dto.getTitle())
+                .eq(HouseRecord::getAddress, dto.getAddress())
+                .set(HouseRecord::getStatus, PublishConstant.RECEIVED);
         this.update(wrapper);
     }
 
     @Override
-    public List<HousePublishRecord> getByUserId(Long userId) {
+    public List<HouseRecord> getByUserId(Long userId) {
         return this.lambdaQuery()
-                .eq(HousePublishRecord::getUserId, userId)
-                .orderByDesc(HousePublishRecord::getCreatedAt)
+                .eq(HouseRecord::getUserId, userId)
+                .orderByDesc(HouseRecord::getCreatedAt)
                 .list();
     }
 
     @Override
-    public List<HousePublishRecord> getPendingRecords() {
+    public List<HouseRecord> getPendingRecords() {
         return this.lambdaQuery()
-                .eq(HousePublishRecord::getStatus, PublishConstant.PENDING)
-                .orderByDesc(HousePublishRecord::getCreatedAt)
+                .eq(HouseRecord::getStatus, PublishConstant.PENDING)
+                .orderByDesc(HouseRecord::getCreatedAt)
                 .list();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void review(Long id, boolean pass, String reason) {
-        HousePublishRecord record = this.getById(id);
+        HouseRecord record = this.getById(id);
         if (record == null) {
             throw new RuntimeException("记录不存在，ID=" + id);
         }
@@ -118,11 +119,17 @@ public class HousePublishRecordServiceImpl
     }
 
     @Override
-    public List<HousePublishRecord> getReceivedRecords() {
+    public List<HouseRecord> getReceivedRecords() {
         return this.lambdaQuery()
-                .eq(HousePublishRecord::getStatus, PublishConstant.RECEIVED)
-                .orderByDesc(HousePublishRecord::getCreatedAt)
+                .eq(HouseRecord::getStatus, PublishConstant.RECEIVED)
+                .orderByDesc(HouseRecord::getCreatedAt)
                 .list();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeWithVecById(Long id) {
+        this.removeById(id);
     }
 
 }

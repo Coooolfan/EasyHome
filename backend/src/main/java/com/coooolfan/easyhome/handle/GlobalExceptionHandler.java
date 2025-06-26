@@ -2,12 +2,12 @@ package com.coooolfan.easyhome.handle;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotRoleException;
-import com.coooolfan.easyhome.exception.AuthException;
 import com.coooolfan.easyhome.exception.BaseException;
 import com.coooolfan.easyhome.exception.RegisterException;
 import com.coooolfan.easyhome.response.Code;
 import com.coooolfan.easyhome.response.Result;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.security.auth.message.AuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

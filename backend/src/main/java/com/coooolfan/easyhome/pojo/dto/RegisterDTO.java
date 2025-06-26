@@ -17,4 +17,6 @@ public class RegisterDTO {
     private String confirmPassword;
     @NotBlank(message = "邮箱不能为空")
     private String email;
+    @NotBlank(message = "手机号码不能为空")
+    private String phone;
 }

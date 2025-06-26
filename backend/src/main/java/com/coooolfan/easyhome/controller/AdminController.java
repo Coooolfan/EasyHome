@@ -1,8 +1,6 @@
 package com.coooolfan.easyhome.controller;
 
-import com.coooolfan.easyhome.response.Result;
 import com.coooolfan.easyhome.service.AdminService;
-import com.coooolfan.easyhome.service.HousePublishRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;

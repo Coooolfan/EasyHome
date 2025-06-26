@@ -26,6 +26,7 @@ public class SysUser{
     private final String username;
     private final String password;
     private final String role;
+    private final String phone;
     private final String email;
     private final Boolean isEnable;
     @TableField(value = "created_at", fill = FieldFill.INSERT)

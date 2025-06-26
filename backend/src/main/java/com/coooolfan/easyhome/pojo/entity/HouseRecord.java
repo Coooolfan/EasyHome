@@ -20,8 +20,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@TableName(value = "house_publish_records")
-public class HousePublishRecord {
+@TableName(value = "house_records")
+public class HouseRecord {
     /**
      * 记录ID
      */

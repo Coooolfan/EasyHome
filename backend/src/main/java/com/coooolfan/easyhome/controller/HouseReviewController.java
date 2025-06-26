@@ -1,8 +1,8 @@
 package com.coooolfan.easyhome.controller;
 
-import com.coooolfan.easyhome.pojo.entity.HousePublishRecord;
+import com.coooolfan.easyhome.pojo.entity.HouseRecord;
 import com.coooolfan.easyhome.response.Result;
-import com.coooolfan.easyhome.service.HousePublishRecordService;
+import com.coooolfan.easyhome.service.HouseRecordService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
@@ -21,23 +21,23 @@ import java.util.List;
 public class HouseReviewController {
 
     @Resource
-    private HousePublishRecordService housePublishRecordService;
+    private HouseRecordService houseRecordService;
 
     @GetMapping("/pending")
-    public Result<List<HousePublishRecord>> getPending() {
-        return Result.ok(housePublishRecordService.getPendingRecords());
+    public Result<List<HouseRecord>> getPending() {
+        return Result.ok(houseRecordService.getPendingRecords());
     }
 
     @GetMapping("/received")
-    public Result<List<HousePublishRecord>> getReceived(){
-        return Result.ok(housePublishRecordService.getReceivedRecords());
+    public Result<List<HouseRecord>> getReceived(){
+        return Result.ok(houseRecordService.getReceivedRecords());
     }
 
     @PostMapping("/approve")
     public Result<String> approve(@RequestParam Long id,
                                   @RequestParam Boolean pass,
                                   @RequestParam(required = false) String reason) {
-        housePublishRecordService.review(id, pass, reason);
+        houseRecordService.review(id, pass, reason);
         return Result.ok("处理完成");
     }
 }

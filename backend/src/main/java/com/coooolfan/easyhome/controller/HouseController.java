@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.coooolfan.easyhome.message.KafkaProducerService;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
-import com.coooolfan.easyhome.pojo.entity.HousePublishRecord;
+import com.coooolfan.easyhome.pojo.entity.HouseRecord;
 import com.coooolfan.easyhome.pojo.vo.HouseQueryVO;
 import com.coooolfan.easyhome.response.Result;
-import com.coooolfan.easyhome.service.HousePublishRecordService;
+import com.coooolfan.easyhome.service.HouseRecordService;
 import com.coooolfan.easyhome.service.HouseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +38,7 @@ public class HouseController {
     private KafkaProducerService kafkaProducerService;
 
     @Resource
-    private HousePublishRecordService housePublishRecordService;
+    private HouseRecordService houseRecordService;
 
     @GetMapping("/page")
     @Operation(summary = "分页查询房屋信息")
@@ -87,7 +87,7 @@ public class HouseController {
         }
 
         // 保存用户发布记录（状态为 pending）
-        housePublishRecordService.publish(loginId, dto);
+        houseRecordService.publish(loginId, dto);
 
         // 推送到 Kafka
         kafkaProducerService.publish(dto);
@@ -97,9 +97,18 @@ public class HouseController {
 
     @GetMapping("/my-publish")
     @Operation(summary = "查询我的发布记录")
-    public Result<List<HousePublishRecord>> getMyPublishRecords() {
+    public Result<List<HouseRecord>> getMyPublishRecords() {
         Long loginId = StpUtil.getLoginIdAsLong();
-        List<HousePublishRecord> records = housePublishRecordService.getByUserId(loginId);
+        List<HouseRecord> records = houseRecordService.getByUserId(loginId);
         return Result.ok(records);
+    }
+
+    @DeleteMapping("/remove-record")
+    @Operation(summary = "删除发布记录")
+    public Result<String> removePublishRecord(@RequestParam Long id) {
+        log.info("删除发布记录: {}", id);
+        // TODO 未处理houses 和 houses_vec 的删除
+        houseRecordService.removeById(id);
+        return Result.ok("发布记录已删除");
     }
 }
