@@ -11,13 +11,13 @@
       <div class="profile-content">
         <div class="profile-left">
           <div class="avatar-section">
-            <el-avatar :size="120" :src="userProfile.avatar" class="user-avatar">
-              <el-icon><UserFilled /></el-icon>
+            <el-avatar :size="120" class="user-avatar">
+              {{ getAvatarText(userProfile.username) }}
             </el-avatar>
-            <el-button type="primary" size="small" class="upload-btn" @click="handleAvatarUpload">
-              <el-icon><Camera /></el-icon>
-              更换头像
-            </el-button>
+            <div class="user-info">
+              <div class="user-name">{{ userProfile.username }}</div>
+              <div class="user-role">{{ getRoleText(userProfile.role) }}</div>
+            </div>
           </div>
         </div>
 
@@ -25,10 +25,6 @@
           <el-form :model="userProfile" label-width="100px" class="profile-form">
             <el-form-item label="用户名">
               <el-input v-model="userProfile.username" disabled />
-            </el-form-item>
-            
-            <el-form-item label="真实姓名">
-              <el-input v-model="userProfile.realName" />
             </el-form-item>
             
             <el-form-item label="邮箱">
@@ -40,9 +36,7 @@
             </el-form-item>
             
             <el-form-item label="角色">
-              <el-tag :type="getRoleType(userProfile.role)">
-                {{ getRoleText(userProfile.role) }}
-              </el-tag>
+              <span class="role-text">{{ getRoleText(userProfile.role) }}</span>
             </el-form-item>
             
             <el-form-item label="注册时间">
@@ -74,12 +68,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
-import { User, UserFilled, Camera, Check, Refresh } from '@element-plus/icons-vue'
+import { User, Check, Refresh } from '@element-plus/icons-vue'
 
 // 定义用户信息接口
 interface UserProfile {
   username: string
-  realName: string
   email: string
   phone: string
   role: string
@@ -92,7 +85,6 @@ const userStore = useUserStore()
 
 const userProfile = reactive<UserProfile>({
   username: '',
-  realName: '',
   email: '',
   phone: '',
   role: '',
@@ -101,12 +93,15 @@ const userProfile = reactive<UserProfile>({
   lastLogin: ''
 })
 
-const getRoleType = (role: string) => {
-  switch (role) {
-    case 'super_admin': return 'danger'
-    case 'admin': return 'warning'
-    default: return 'info'
+// 获取头像显示文字（首字母）
+const getAvatarText = (name: string) => {
+  if (!name) return 'A'
+  // 如果是中文，取第一个字符
+  if (/[\u4e00-\u9fa5]/.test(name)) {
+    return name.charAt(0)
   }
+  // 如果是英文，取第一个字母的大写
+  return name.charAt(0).toUpperCase()
 }
 
 const getRoleText = (role: string) => {
@@ -115,10 +110,6 @@ const getRoleText = (role: string) => {
     case 'admin': return '管理员'
     default: return '普通用户'
   }
-}
-
-const handleAvatarUpload = () => {
-  ElMessage.info('头像上传功能开发中...')
 }
 
 const updateProfile = () => {
@@ -137,11 +128,10 @@ const loadUserProfile = () => {
   
   Object.assign(userProfile, {
     username: userInfo.username || '管理员',
-    realName: (userInfo as any).realName || '张三', // 使用类型断言
     email: userInfo.email || 'admin@example.com',
-    phone: (userInfo as any).phone || '13800138000', // 使用类型断言
+    phone: (userInfo as any).phone || '13800138000',
     role: userInfo.role || 'admin',
-    avatar: (userInfo as any).avatar || '', // 使用类型断言
+    avatar: (userInfo as any).avatar || '',
     createTime: '2024-01-01 10:00:00',
     lastLogin: '2024-01-15 09:30:00'
   })
@@ -202,12 +192,27 @@ onMounted(() => {
 .user-avatar {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 3px solid #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 48px;
+  font-weight: 600;
 }
 
-.upload-btn {
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 12px;
+.user-info {
+  text-align: center;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.user-role {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: normal;
 }
 
 .profile-right {
@@ -216,6 +221,14 @@ onMounted(() => {
 
 .profile-form {
   max-width: 600px;
+}
+
+.role-text {
+  font-size: 14px;
+  color: #374151;
+  font-weight: normal;
+  padding: 4px 0;
+  display: inline-block;
 }
 
 :deep(.el-form-item__label) {
@@ -242,11 +255,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-:deep(.el-tag) {
-  border-radius: 6px;
-  font-weight: 500;
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   .profile-content {
@@ -260,6 +268,10 @@ onMounted(() => {
   
   .profile-form {
     max-width: 100%;
+  }
+  
+  .user-avatar {
+    font-size: 36px;
   }
 }
 </style>

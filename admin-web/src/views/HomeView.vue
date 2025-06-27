@@ -30,19 +30,17 @@
           </el-tooltip>
           
           <!-- 设置 -->
-          
-      <el-tooltip content="系统设置" placement="bottom">
-        <el-button class="action-btn" circle @click="handleSystemSettings">
-          <el-icon><Setting /></el-icon>
-        </el-button>
-      </el-tooltip>
+          <el-tooltip content="系统设置" placement="bottom">
+            <el-button class="action-btn" circle @click="handleSystemSettings">
+              <el-icon><Setting /></el-icon>
+            </el-button>
+          </el-tooltip>
 
-          
-          <!-- 用户头像 -->
+          <!-- 用户头像 - 修改为首字母头像 -->
           <el-dropdown @command="handleUserCommand">
             <div class="user-avatar">
-              <el-avatar :size="35" :src="userInfo.avatar">
-                <el-icon><UserFilled /></el-icon>
+              <el-avatar :size="35" class="header-user-avatar">
+                {{ getAvatarText(userInfo.username) }}
               </el-avatar>
               <span class="username">{{ userInfo.username }}</span>
               <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
@@ -65,6 +63,7 @@
       </div>
     </el-header>
 
+    <!-- 其余代码保持不变 -->
     <el-container class="main-container">
       <!-- 左侧导航栏 -->
       <el-aside width="260px" class="sidebar">
@@ -99,30 +98,29 @@
           </el-sub-menu>
 
           <!-- 业务管理 -->
-         <el-sub-menu index="business" class="sub-menu">
-  <template #title>
-    <el-icon class="menu-icon"><House /></el-icon>
-    <span class="menu-title">业务管理</span>
-  </template>
-  
-  <el-menu-item index="/house-manage" class="sub-menu-item">
-    <el-icon class="sub-menu-icon"><OfficeBuilding /></el-icon>
-    <span>房源管理</span>
-  </el-menu-item>
-  
-  <!-- 🆕 新增卖房管理菜单 -->
-  <el-menu-item index="/sell-house-manage" class="sub-menu-item">
-    <el-icon class="sub-menu-icon"><DocumentChecked /></el-icon>
-    <span>卖房管理</span>
-    <!-- 可选：显示待审核数量 -->
-    <el-badge 
-      v-if="pendingSellHouseCount > 0" 
-      :value="pendingSellHouseCount" 
-      :max="99" 
-      class="menu-badge"
-    />
-  </el-menu-item>
-</el-sub-menu>
+          <el-sub-menu index="business" class="sub-menu">
+            <template #title>
+              <el-icon class="menu-icon"><House /></el-icon>
+              <span class="menu-title">业务管理</span>
+            </template>
+            
+            <el-menu-item index="/house-manage" class="sub-menu-item">
+              <el-icon class="sub-menu-icon"><OfficeBuilding /></el-icon>
+              <span>房源管理</span>
+            </el-menu-item>
+            
+            <!-- 卖房管理菜单 -->
+            <el-menu-item index="/sell-house-manage" class="sub-menu-item">
+              <el-icon class="sub-menu-icon"><DocumentChecked /></el-icon>
+              <span>卖房审核</span>
+            </el-menu-item>
+
+            <!--  新增预约管理菜单 -->
+            <el-menu-item index="/reservation-manage" class="sub-menu-item">
+              <el-icon class="sub-menu-icon"><Calendar /></el-icon>
+              <span>预约管理</span>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
 
@@ -205,7 +203,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -215,13 +212,14 @@ import {
   Plus, Document, Refresh, TrendCharts, Clock, House, User,
   ArrowUp, ArrowDown, UserFilled, OfficeBuilding, Warning,
   Check, Money, StarFilled, Download, UploadFilled, ArrowRight,
-  DocumentChecked // 🆕 新增图标
+  DocumentChecked, Calendar, Bell, Search, Setting, SwitchButton,
+  DataAnalysis
 } from '@element-plus/icons-vue'
+
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-// 在数据定义部分添加待审核数量
-const pendingSellHouseCount = ref(5) // 🆕 待审核卖房数量，可以从API获取
+
 const activeMenu = computed(() => route.path)
 const isSuperAdmin = computed(() => userStore.userInfo.role === 'super_admin')
 const canAccessFunction = computed(() => userStore.userInfo.role === 'super_admin' || userStore.userInfo.role === 'admin')
@@ -230,6 +228,17 @@ const userInfo = ref({
   username: userStore.userInfo.username || '管理员',
   avatar: ''
 })
+
+// 🔧 添加获取头像显示文字的函数（与个人中心保持一致）
+const getAvatarText = (name: string) => {
+  if (!name) return 'A'
+  // 如果是中文，取第一个字符
+  if (/[\u4e00-\u9fa5]/.test(name)) {
+    return name.charAt(0)
+  }
+  // 如果是英文，取第一个字母的大写
+  return name.charAt(0).toUpperCase()
+}
 
 const handleMenuSelect = (index: string) => {
   router.push(index)
@@ -399,6 +408,7 @@ const loadNotifications = () => {
     }
   ]
 }
+
 onMounted(() => {
   // 默认跳转到数据看板
   if (route.path === '/') {
@@ -496,6 +506,16 @@ onMounted(() => {
 
 .user-avatar:hover {
   background: #f5f7fa;
+}
+
+/* 🔧 顶部导航栏头像样式 - 与个人中心保持一致 */
+.header-user-avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .username {
@@ -656,6 +676,7 @@ onMounted(() => {
 :deep(.el-sub-menu.is-opened .el-sub-menu__icon-arrow) {
   transform: rotateZ(180deg);
 }
+
 /* 通知对话框样式 */
 :deep(.notification-dialog) {
   border-radius: 12px;

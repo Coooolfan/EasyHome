@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),//去除hash模式"#"
   routes: [
     {
       path: '/login',
@@ -37,12 +37,19 @@ const router = createRouter({
           name: 'HouseManage',
           component: () => import('../views/HouseManageView.vue')
         },
-        // 🆕 新增卖房管理路由
+        //  新增卖房管理路由
         {
           path: '/sell-house-manage',
           name: 'SellHouseManage',
           component: () => import('../views/SellHouseManageView.vue'),
           meta: { title: '卖房管理' }
+        },
+        // 预约管理路由
+        {
+          path: '/reservation-manage',
+          name: 'ReservationManage',
+          component: () => import('../views/ReservationManageView.vue'),
+          meta: { title: '预约管理' }
         },
         {
           path: '/profile',
