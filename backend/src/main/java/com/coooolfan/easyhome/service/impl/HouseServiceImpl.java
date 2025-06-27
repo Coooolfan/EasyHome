@@ -44,6 +44,7 @@ import java.util.List;
 public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements HouseService {
 
     private final HouseRecordService houseRecordService;
+
     private EmbeddingModel embed;
 
     private HouseVecMapper houseVecMapper;
@@ -70,17 +71,7 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
 
     @Override
     public String getHousesDescByVectorSearch(ArrayList<ChatMessage> historyMessage, ChatMessage question, int limit) {
-        StringBuilder ragPromptBuilder = new StringBuilder();
-        for (ChatMessage chatMessage : historyMessage) {
-            if (ChatRole.ASSISTANT == chatMessage.getRole()) {
-                ragPromptBuilder.append("ASSISTANT: \n").append(chatMessage.getContent());
-            }
-
-            if (ChatRole.USER == chatMessage.getRole()) {
-                ragPromptBuilder.append("USER: \n").append(chatMessage.getContent()).append("\n");
-            }
-
-        }
+        StringBuilder ragPromptBuilder = getPromptBuilder(historyMessage);
         String ragPrompt = String.format(LLMConstant.RAG_REWRITE, ragPromptBuilder, question.getContent());
         try {
             val rewriteResp = rewriteModel.prompt(ragPrompt).call();
@@ -96,7 +87,23 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
         }
     }
 
+    public static StringBuilder getPromptBuilder(ArrayList<ChatMessage> historyMessage) {
+        StringBuilder ragPromptBuilder = new StringBuilder();
+        for (ChatMessage chatMessage : historyMessage) {
+            if (ChatRole.ASSISTANT == chatMessage.getRole()) {
+                ragPromptBuilder.append("ASSISTANT: \n").append(chatMessage.getContent());
+            }
+
+            if (ChatRole.USER == chatMessage.getRole()) {
+                ragPromptBuilder.append("USER: \n").append(chatMessage.getContent()).append("\n");
+            }
+
+        }
+        return ragPromptBuilder;
+    }
+
     @Override
+    @SneakyThrows
     public String getHousesDescByVectorSearch(ChatMessage chatMessage, int limit) {
         val regQuestion = chatMessage.getContent();
         val housesByVectorSearch = this.getHousesByVectorSearch(regQuestion, limit);

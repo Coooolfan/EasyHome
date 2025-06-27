@@ -3,8 +3,9 @@ package com.coooolfan.easyhome.utils;
 import com.coooolfan.easyhome.pojo.entity.House;
 
 public class EasyHomeUtils {
-    public static String toString(House house){
+    public static String toString(House house) {
         return "此房屋位于" + house.getAddress() + "。" +
+                "房屋ID为" + house.getId() + "，" +
                 "房屋户型为" + house.getRooms() + "，" +
                 "面积为" + house.getArea() + "平方米，" +
                 "总价为" + house.getPrice() + "元，" +
