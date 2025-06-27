@@ -10,8 +10,10 @@ import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.constant.LLMConstant;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
+import com.coooolfan.easyhome.pojo.entity.HouseRecord;
 import com.coooolfan.easyhome.pojo.entity.HouseVec;
 import com.coooolfan.easyhome.pojo.dto.HouseQueryDTO;
+import com.coooolfan.easyhome.service.HouseRecordService;
 import com.coooolfan.easyhome.service.HouseService;
 import com.coooolfan.easyhome.utils.EasyHomeUtils;
 import lombok.AllArgsConstructor;
@@ -41,6 +43,7 @@ import java.util.List;
 @AllArgsConstructor
 public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements HouseService {
 
+    private final HouseRecordService houseRecordService;
     private EmbeddingModel embed;
 
     private HouseVecMapper houseVecMapper;
@@ -129,6 +132,9 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
         houseMapper.deleteById(id);
         QueryWrapper<HouseVec> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("house_id", id);
+        QueryWrapper<HouseRecord> houseRecordQueryWrapper = new QueryWrapper<>();
+        houseRecordQueryWrapper.eq("house_id", id);
+        houseRecordService.remove(houseRecordQueryWrapper);
         houseVecMapper.delete(queryWrapper);
     }
 

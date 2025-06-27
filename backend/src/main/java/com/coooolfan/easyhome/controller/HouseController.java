@@ -61,13 +61,7 @@ public class HouseController {
         return Result.ok(null);
     }
 
-    @DeleteMapping("/delete")
-    @Operation(summary = "删除房屋信息")
-    public Result<String> deleteHouse(@RequestParam Long id) {
-        log.info("删除房屋信息: {}", id);
-        houseService.removeWithVecById(id);
-        return Result.ok(null);
-    }
+
 
     @PutMapping("/update")
     @Operation(summary = "更新房屋信息")
@@ -127,5 +121,13 @@ public class HouseController {
         log.info("删除发布记录: {}", id);
         houseRecordService.removeById(id);
         return Result.ok("审核记录已删除");
+    }
+
+    @DeleteMapping("/remove-house")
+    @Operation(summary = "删除房屋信息")
+    public Result<String> deleteHouse(@RequestParam Long id) {
+        log.info("删除房屋发布信息: {}", id);
+        houseRecordService.removeWithVecByRecordId(id);
+        return Result.ok(null);
     }
 }

@@ -1,5 +1,6 @@
 package com.coooolfan.easyhome.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coooolfan.easyhome.constant.HouseConstant;
@@ -9,10 +10,7 @@ import com.coooolfan.easyhome.mapper.HouseRecordMapper;
 import com.coooolfan.easyhome.mapper.HouseUserRelationMapper;
 import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
-import com.coooolfan.easyhome.pojo.entity.House;
-import com.coooolfan.easyhome.pojo.entity.HouseRecord;
-import com.coooolfan.easyhome.pojo.entity.HouseUserRelation;
-import com.coooolfan.easyhome.pojo.entity.ReviewResult;
+import com.coooolfan.easyhome.pojo.entity.*;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import jakarta.annotation.Resource;
 import lombok.val;
@@ -99,6 +97,31 @@ public class HouseRecordServiceImpl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void removeWithVecByRecordId(Long recordId) {
+        HouseRecord record = this.getById(recordId);
+        if (record == null) {
+            throw new RuntimeException("记录不存在，ID=" + recordId);
+        }
+
+        // 删除房屋记录
+        this.removeById(recordId);
+
+        // 删除房屋向量
+        LambdaQueryWrapper<HouseVec> vecQueryWrapper = new LambdaQueryWrapper<>();
+        vecQueryWrapper.eq(HouseVec::getHouseId, record.getHouseId());
+        houseVecMapper.delete(vecQueryWrapper);
+
+        // 删除房屋信息
+        houseMapper.deleteById(record.getHouseId());
+
+        // 删除房屋用户关系
+        LambdaQueryWrapper<HouseUserRelation> relationQueryWrapper = new LambdaQueryWrapper<>();
+        relationQueryWrapper.eq(HouseUserRelation::getHouseId, record.getHouseId());
+        houseUserRelationMapper.delete(relationQueryWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean review(Long id, boolean pass, String reason) {
         HouseRecord record = this.getById(id);
         if (record == null) {
@@ -108,6 +131,7 @@ public class HouseRecordServiceImpl
         if (pass) {
             record.setStatus(PublishConstant.APPROVED);
             record.setReason(reason);
+
             House house = House.builder()
                     .title(record.getTitle())
                     .address(record.getAddress())
@@ -120,6 +144,8 @@ public class HouseRecordServiceImpl
                     .decoration(record.getDecoration())
                     .orientation(record.getOrientation())
                     .unitPrice(record.getUnitPrice())
+                    .userId(record.getUserId())
+                    .tag(record.getTag())
                     .build();
 
             try {
@@ -134,7 +160,7 @@ public class HouseRecordServiceImpl
                 houseUserRelation.setHouseId(house.getId());
                 houseUserRelation.setUserId(record.getUserId());
                 houseUserRelationMapper.insert(houseUserRelation);
-
+                record.setHouseId(house.getId());
             }catch (Exception e) {
                 log.error(HouseConstant.FAIL_ADD);
                 throw new RuntimeException(e);

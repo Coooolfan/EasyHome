@@ -3,7 +3,6 @@ package com.coooolfan.easyhome.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.HouseRecord;
-import com.coooolfan.easyhome.pojo.entity.ReviewResult;
 
 import java.util.List;
 
@@ -22,4 +21,6 @@ public interface HouseRecordService
     List<HouseRecord> getPendingRecords();
     List<HouseRecord> getApprovedRecords();
     Long getUserIdByRecordId(Long id);
+
+    void removeWithVecByRecordId(Long id);
 }

@@ -27,6 +27,7 @@ CREATE TABLE houses (
     decoration VARCHAR(20),
     tag VARCHAR(500), 
     image VARCHAR(500),
+    user_id BIGINT,  
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -71,6 +72,7 @@ CREATE INDEX ON houses_vec USING hnsw(embedding vector_l2_ops);
 -- 创建房源推送记录表
 CREATE TABLE house_records (
     id BIGSERIAL PRIMARY KEY,
+    house_id BIGINT, 
     user_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
     address VARCHAR(300) NOT NULL,

@@ -49,5 +49,7 @@ public class House {
 
     @TableField(typeHandler = StringListTypeHandler.class)
     private List<String> tag;
+
+    private Long userId;
 }
 

@@ -164,9 +164,10 @@ const deleteHouse = async (id: number): Promise<void> => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        // 修改为使用正确的API端点
-        const response = await axios.delete(`/api/houses/remove-record?id=${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        // 更新为使用新的API端点
+        const response = await axios.delete(`/api/houses/remove-house`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            params: { id: id }
         });
 
         if (response.data && response.data.code === 'SUCCESS') {
@@ -305,112 +306,112 @@ onMounted(() => {
             </div>
 
             <!-- 房源列表 -->
-            <div v-else class="grid grid-cols-1 gap-6">
-                <div v-for="house in filteredAndSortedHouses" :key="house.id"
-                    class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="flex flex-col md:flex-row">
-                        <!-- 房源图片 -->
-                        <div class="md:w-64 h-48 md:h-auto flex-shrink-0 bg-gray-100 overflow-hidden cursor-pointer"
-                            @click="viewHouse(house)">
-                            <img v-if="house.image" :src="house.image" alt="房源图片" class="w-full h-full object-cover">
-                            <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
-                                <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <!-- 房源信息 -->
-                        <div class="p-6 flex-1 flex flex-col">
-                            <div class="flex justify-between items-start">
-                                <h2 class="text-xl font-bold text-gray-800 mb-2 cursor-pointer hover:text-blue-600"
-                                    @click="viewHouse(house)">
-                                    {{ house.title }}
-                                </h2>
-                                <div
-                                    :class="`px-3 py-1 text-xs font-medium rounded-full border ${statusColorClass(house.status)}`">
-                                    {{ getStatusDisplay(house.status) }}
-                                </div>
-                            </div>
-
-                            <p class="text-gray-600 mb-4">{{ house.address }}</p>
-
-                            <div class="flex flex-wrap gap-x-4 gap-y-2 mb-4">
-                                <div class="flex items-center text-gray-500">
-                                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                    {{ house.rooms }}
-                                </div>
-                                <div class="flex items-center text-gray-500">
-                                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                                    </svg>
-                                    {{ house.area }}平米
-                                </div>
-                                <div v-if="house.orientation" class="flex items-center text-gray-500">
-                                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
-                                    </svg>
-                                    {{ house.orientation }}
-                                </div>
-                                <div v-if="house.floor" class="flex items-center text-gray-500">
-                                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                    </svg>
-                                    {{ house.floor }}
-                                </div>
-                            </div>
-
-                            <div class="mt-auto">
-                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                                    <div>
-                                        <span class="text-2xl font-bold text-blue-600">{{ formatPrice(house.price) }}</span>
-                                        <span v-if="house.unitPrice" class="text-sm text-gray-500 ml-2">{{ house.unitPrice }}元/平</span>
-                                    </div>
-
-                                    <div class="flex gap-2">
-                                        <!-- 查看按钮 -->
-                                        <button @click="viewHouse(house)"
-                                            class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
-                                            查看详情
-                                        </button>
-
-                                        <!-- 删除按钮 -->
-                                        <button v-if="house.status === 'REJECTED'" @click="deleteHouse(house.id)"
-                                            class="px-3 py-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors">
-                                            删除
-                                        </button>
-
-                                        <!-- 下架按钮 -->
-                                        <button v-if="house.status === 'PUBLISHED'" @click="unpublishHouse(house.id)"
-                                            class="px-3 py-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors">
-                                            下架
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- 提交时间 -->
-                                <div class="mt-4 text-sm text-gray-500">
-                                    提交时间: {{ formatDate(house.createdAt || house.createTime) }}
-                                </div>
-                            </div>
-
-                            <!-- 被拒绝原因 -->
-                            <div v-if="house.status === 'REJECTED' && house.reason"
-                                class="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-100">
-                                <div class="font-medium mb-1">拒绝原因:</div>
-                                <div>{{ house.reason }}</div>
-                            </div>
-                        </div>
-                    </div>
+<div v-else class="grid grid-cols-1 gap-6">
+    <div v-for="house in filteredAndSortedHouses" :key="house.id"
+        class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="flex flex-col md:flex-row">
+            <!-- 房源图片 -->
+            <div class="md:w-64 h-48 md:h-auto flex-shrink-0 bg-gray-100 overflow-hidden cursor-pointer"
+                @click="viewHouse(house)">
+                <img v-if="house.image" :src="house.image" alt="房源图片" class="w-full h-full object-cover">
+                <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                 </div>
             </div>
+
+            <!-- 房源信息 -->
+            <div class="p-6 flex-1 flex flex-col">
+                <div class="flex justify-between items-start">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2 cursor-pointer hover:text-blue-600"
+                        @click="viewHouse(house)">
+                        {{ house.title }}
+                    </h2>
+                    <div
+                        :class="`px-3 py-1 text-xs font-medium rounded-full border ${statusColorClass(house.status)}`">
+                        {{ getStatusDisplay(house.status) }}
+                    </div>
+                </div>
+
+                <p class="text-gray-600 mb-4">{{ house.address }}</p>
+
+                <div class="flex flex-wrap gap-x-4 gap-y-2 mb-4">
+                    <div class="flex items-center text-gray-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        {{ house.rooms }}
+                    </div>
+                    <div class="flex items-center text-gray-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                        {{ house.area }}平米
+                    </div>
+                    <div v-if="house.orientation" class="flex items-center text-gray-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
+                        </svg>
+                        {{ house.orientation }}
+                    </div>
+                    <div v-if="house.floor" class="flex items-center text-gray-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                        {{ house.floor }}
+                    </div>
+                </div>
+
+                <div class="mt-auto">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <div>
+                            <span class="text-2xl font-bold text-blue-600">{{ formatPrice(house.price) }}</span>
+                            <span v-if="house.unitPrice" class="text-sm text-gray-500 ml-2">{{ house.unitPrice }}元/平</span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <!-- 查看按钮 -->
+                            <button @click="viewHouse(house)"
+                                class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                                查看详情
+                            </button>
+
+                            <!-- 删除按钮 - 所有状态都可以删除 -->
+                            <button @click="deleteHouse(house.id)"
+                                class="px-3 py-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors">
+                                删除
+                            </button>
+
+                            <!-- 下架按钮 -->
+                            <button v-if="house.status === 'PUBLISHED'" @click="unpublishHouse(house.id)"
+                                class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded hover:bg-orange-100 transition-colors">
+                                下架
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 提交时间 -->
+                    <div class="mt-4 text-sm text-gray-500">
+                        提交时间: {{ formatDate(house.createdAt || house.createTime) }}
+                    </div>
+                </div>
+
+                <!-- 被拒绝原因 -->
+                <div v-if="house.status === 'REJECTED' && house.reason"
+                    class="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-100">
+                    <div class="font-medium mb-1">拒绝原因:</div>
+                    <div>{{ house.reason }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- 底部信息 -->
             <div v-if="filteredAndSortedHouses.length > 0" class="mt-6 text-center text-gray-500 text-sm">

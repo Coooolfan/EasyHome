@@ -34,6 +34,7 @@ public class HouseRecord {
     @TableField("user_id")
     private Long userId;
 
+    private Long houseId;
     /**
      * 房源标题
      */

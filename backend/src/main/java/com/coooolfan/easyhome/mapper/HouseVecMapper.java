@@ -2,11 +2,7 @@ package com.coooolfan.easyhome.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coooolfan.easyhome.pojo.entity.HouseVec;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -47,4 +43,7 @@ public interface HouseVecMapper extends BaseMapper<HouseVec> {
      */
     @Update("UPDATE houses_vec SET embedding = #{embedding}::vector WHERE house_id = #{houseId}")
     void updateHouseVec(@Param("houseId") Long houseId, @Param("embedding") String embedding);
-} 
+
+    @Delete("DELETE FROM houses_vec WHERE house_id = #{houseId}")
+    void deleteByHouseId(Long houseId);
+}
