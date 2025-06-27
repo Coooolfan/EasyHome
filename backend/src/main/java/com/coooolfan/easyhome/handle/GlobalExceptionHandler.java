@@ -4,6 +4,7 @@ import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotRoleException;
 import com.coooolfan.easyhome.exception.BaseException;
 import com.coooolfan.easyhome.exception.RegisterException;
+import com.coooolfan.easyhome.exception.ReviewException;
 import com.coooolfan.easyhome.response.Code;
 import com.coooolfan.easyhome.response.Result;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -57,5 +58,11 @@ public class GlobalExceptionHandler {
     public Result<String> notRoleExceptionHandler(NotRoleException ex) {
         log.error("权限不足：{}", ex.getMessage());
         return new Result<>(Code.FORBIDDEN, "权限不足", null);
+    }
+
+    @ExceptionHandler(ReviewException.class)
+    public Result<String> reviewExceptionHandler(ReviewException ex) {
+        log.error("审核异常：{}", ex.getMessage());
+        return new Result<>(Code.FORBIDDEN, ex.getMessage(), null);
     }
 }

@@ -3,6 +3,7 @@ package com.coooolfan.easyhome.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.HouseRecord;
+import com.coooolfan.easyhome.pojo.entity.ReviewResult;
 
 import java.util.List;
 
@@ -16,8 +17,9 @@ public interface HouseRecordService
     void markAsReceived(HouseDTO dto);
     List<HouseRecord> getByUserId(Long loginId);
 
-    void review(Long id, boolean pass, String reason);
+    Boolean review(Long id, boolean pass, String reason);
     List<HouseRecord> getReceivedRecords();
     List<HouseRecord> getPendingRecords();
     List<HouseRecord> getApprovedRecords();
+    Long getUserIdByRecordId(Long id);
 }

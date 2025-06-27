@@ -12,6 +12,7 @@ import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.HouseRecord;
 import com.coooolfan.easyhome.pojo.entity.HouseUserRelation;
+import com.coooolfan.easyhome.pojo.entity.ReviewResult;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import jakarta.annotation.Resource;
 import lombok.val;
@@ -88,8 +89,17 @@ public class HouseRecordServiceImpl
     }
 
     @Override
+    public Long getUserIdByRecordId(Long id) {
+        HouseRecord record = this.getById(id);
+        if (record == null) {
+            throw new RuntimeException("记录不存在，ID=" + id);
+        }
+        return record.getUserId();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public void review(Long id, boolean pass, String reason) {
+    public Boolean review(Long id, boolean pass, String reason) {
         HouseRecord record = this.getById(id);
         if (record == null) {
             throw new RuntimeException("记录不存在，ID=" + id);
@@ -129,11 +139,14 @@ public class HouseRecordServiceImpl
                 log.error(HouseConstant.FAIL_ADD);
                 throw new RuntimeException(e);
             }
+            this.updateById(record);
+            return true;
+
         } else {
             record.setStatus(PublishConstant.REJECTED);
             record.setReason(reason);
+            return false;
         }
-        this.updateById(record);
     }
 
     @Override

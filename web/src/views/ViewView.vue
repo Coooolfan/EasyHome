@@ -148,7 +148,13 @@ const submitAppointment = async () => {
             return
         }
         
-        const response = await axios.post('/api/appointments/create', form.value, {
+        // 创建一个包含用户ID的请求数据
+        const requestData = {
+            ...form.value
+        }
+        
+        // 发送请求，使用包含用户ID的数据
+        const response = await axios.post('/api/appointment/submit', requestData, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
         

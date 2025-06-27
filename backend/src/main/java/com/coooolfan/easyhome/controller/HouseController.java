@@ -3,7 +3,7 @@ package com.coooolfan.easyhome.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.coooolfan.easyhome.message.KafkaProducerService;
+import com.coooolfan.easyhome.service.HouseInfoService;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.HouseRecord;
@@ -36,7 +36,7 @@ public class HouseController {
     private HouseService houseService;
 
     @Resource
-    private KafkaProducerService kafkaProducerService;
+    private HouseInfoService kafkaProducerService;
 
     @Resource
     private HouseRecordService houseRecordService;

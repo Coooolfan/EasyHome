@@ -3,6 +3,7 @@ package com.coooolfan.easyhome.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coooolfan.easyhome.pojo.entity.HouseUserRelation;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * @author lima
@@ -11,4 +12,6 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface HouseUserRelationMapper
         extends BaseMapper<HouseUserRelation> {
+    @Select("SELECT user_id FROM house_user_relation WHERE house_id = #{houseId}")
+    Long getUserIdByHouseId(Long houseId);
 }

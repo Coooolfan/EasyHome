@@ -58,4 +58,8 @@ public class Result<T> {
     public static<T> Result<T> unauthorized(String message) {
         return new Result<>(Code.UNAUTHORIZED, message, null);
     }
+
+    public static <T> Result<T> failed(String message) {
+        return new Result<>(Code.FAILED, message, null);
+    }
 }

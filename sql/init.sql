@@ -138,3 +138,36 @@ ALTER TABLE user_favorites ADD CONSTRAINT fk_user_favorites_user_id
     FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE;
 ALTER TABLE user_favorites ADD CONSTRAINT fk_user_favorites_house_id 
     FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE CASCADE;
+
+
+CREATE TABLE appointment_records (
+    id BIGSERIAL PRIMARY KEY,
+    house_id BIGINT NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    time VARCHAR(20) NOT NULL, -- 如 "10:00-11:00"
+    date DATE NOT NULL,
+    remarks TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- PENDING / CONFIRMED / CANCELLED
+    user_id BIGINT, -- 可关联 users 表
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建索引提高检索效率
+CREATE INDEX idx_appointment_house_id ON appointment_records(house_id);
+CREATE INDEX idx_appointment_date ON appointment_records(date);
+
+-- 防止重复预约（同一用户在同一时间段预约同一房源）
+CREATE UNIQUE INDEX uniq_appointment_user_time
+    ON appointment_records(house_id, phone, date, time);
+
+
+CREATE TABLE user_notifications (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

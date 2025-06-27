@@ -15,6 +15,7 @@ public enum Code {
     SUCCESS(200, "成功"),
     BAD_REQUEST(400, "参数错误"),
     UNAUTHORIZED(401, "未授权"),
+    FAILED(402, "请求失败"),
     INTERNAL_ERROR(500, "系统异常"),
     FORBIDDEN(403, "禁止访问"),;
 

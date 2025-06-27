@@ -1,0 +1,36 @@
+package com.coooolfan.easyhome.controller;
+
+import cn.dev33.satoken.stp.StpUtil;
+import com.coooolfan.easyhome.message.AppointmentProducer;
+import com.coooolfan.easyhome.pojo.dto.AppointmentDTO;
+import com.coooolfan.easyhome.response.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 用户提交预约请求接口
+ * @author lima
+ */
+@Slf4j
+@RestController
+@Tag(name = "预约接口组")
+@RequestMapping("/api/appointment")
+@RequiredArgsConstructor
+public class AppointmentController {
+
+    private final AppointmentProducer appointmentProducer;
+
+    @PostMapping("/submit")
+    @Operation(summary = "提交预约请求")
+    public Result<Void> submit(@RequestBody AppointmentDTO dto) {
+
+        Long userId = StpUtil.getLoginIdAsLong();
+        dto.setUserId(userId);
+
+        appointmentProducer.send(dto);
+        return Result.ok(null);
+    }
+}

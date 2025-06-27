@@ -59,6 +59,11 @@ const router = createRouter({
                 requiresAuth: true,
                 title: '我的收藏 - EasyHome'
             }
+        },
+        {
+            path: '/notifications',
+            name: 'notifications',
+            component: () => import('../views/NotificationView.vue'),
         }
     ],
 })
