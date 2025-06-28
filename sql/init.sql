@@ -69,6 +69,13 @@ CREATE TABLE houses_vec (
 
 CREATE INDEX ON houses_vec USING hnsw(embedding vector_l2_ops);
 
+CREATE TABLE common_knowledge_vec (
+    id BIGSERIAL PRIMARY KEY,
+    embedding vector(1536) NOT NULL,
+    content TEXT NOT NULL
+);
+CREATE INDEX ON common_knowledge_vec USING hnsw(embedding vector_l2_ops);
+
 -- 创建房源推送记录表
 CREATE TABLE house_records (
     id BIGSERIAL PRIMARY KEY,

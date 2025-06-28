@@ -4,6 +4,7 @@ import SearchView from '../views/SearchView.vue'
 import ViewView from '../views/ViewView.vue'
 import SellView from '../views/SellView.vue'
 import LoginView from '../views/LoginView.vue'
+import HouseMiniCardDemo from '../views/HouseMiniCardDemo.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -64,6 +65,14 @@ const router = createRouter({
             path: '/notifications',
             name: 'notifications',
             component: () => import('../views/NotificationView.vue'),
+        },
+        {
+            path: '/demo/mini-card',
+            name: 'house-mini-card-demo',
+            component: HouseMiniCardDemo,
+            meta: {
+                title: 'HouseMiniCard演示 - EasyHome'
+            }
         }
     ],
 })

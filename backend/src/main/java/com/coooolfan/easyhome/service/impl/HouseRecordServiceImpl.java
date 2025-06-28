@@ -12,12 +12,12 @@ import com.coooolfan.easyhome.mapper.HouseVecMapper;
 import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.*;
 import com.coooolfan.easyhome.service.HouseRecordService;
+import com.coooolfan.easyhome.utils.EmbeddingUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.noear.solon.ai.embedding.EmbeddingModel;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,6 +137,7 @@ public class HouseRecordServiceImpl
         if (pass) {
             record.setStatus(PublishConstant.APPROVED);
             record.setReason(reason);
+
             House house = House.builder()
                     .title(record.getTitle())
                     .address(record.getAddress())
@@ -159,6 +160,7 @@ public class HouseRecordServiceImpl
                                 .toString()).call()
                         .getData().getFirst()
                         .getEmbedding();
+                embedding = EmbeddingUtils.cut(embedding);
                 houseVecMapper.insertHouseVec(house.getId(), Arrays.toString(embedding));
 
                 HouseUserRelation houseUserRelation = new HouseUserRelation();
