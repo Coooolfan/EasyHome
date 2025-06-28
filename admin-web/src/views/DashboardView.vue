@@ -1115,6 +1115,39 @@ const resetTrendData = () => {
   trendData.transactions[trendData.transactions.length - 1] = Number(statsData.value[2].value) || 0
 }
 
+const calcTrend = (current: number, prev: number) => {
+  if (prev === 0) {
+    // 前一天为0，当前有数据，增长率为100%
+    return current > 0 ? '+100%' : '0%'
+  }
+  const percent = ((current - prev) / prev) * 100
+  return (percent >= 0 ? '+' : '') + percent.toFixed(1) + '%'
+}
+
+// 在 fetchUserCount、fetchHouseCount、fetchPendingHouseCount、fetchAdminCount 之后调用
+const updateTrends = () => {
+  // 前一天为0，当前为最新值
+  statsData.value[0].trend = calcTrend(Number(statsData.value[0].value), 0)
+  statsData.value[1].trend = calcTrend(Number(statsData.value[1].value), 0)
+  statsData.value[2].trend = calcTrend(Number(statsData.value[2].value), 0)
+  statsData.value[3].trend = calcTrend(Number(statsData.value[3].value), 0)
+
+  // 设置趋势样式和图标
+  statsData.value.forEach(stat => {
+    const trendNum = Number(stat.trend.replace('%', ''))
+    if (trendNum > 0) {
+      stat.trendClass = 'trend-up'
+      stat.trendIcon = ArrowUp
+    } else if (trendNum < 0) {
+      stat.trendClass = 'trend-down'
+      stat.trendIcon = ArrowDown
+    } else {
+      stat.trendClass = 'trend-neutral'
+      stat.trendIcon = ArrowUp
+    }
+  })
+}
+
 onMounted(async() => {
   await fetchUserCount()
   await fetchHouseCount()
@@ -1123,6 +1156,8 @@ onMounted(async() => {
   fetchRecentHouses()
   fetchRecentUsers()
   loadDashboardData()
+
+  updateTrends()
 
   nextTick(() => {
     resetTrendData()      // 用接口获取的最新数据重置趋势图
