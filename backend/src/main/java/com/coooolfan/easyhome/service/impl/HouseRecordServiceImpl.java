@@ -126,6 +126,13 @@ public class HouseRecordServiceImpl
     }
 
     @Override
+    public Long countReceivedRecords() {
+        return this.lambdaQuery()
+                .eq(HouseRecord::getStatus, PublishConstant.RECEIVED)
+                .count();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean review(Long id, boolean pass, String reason) {
         log.info("审核房屋记录，ID={}, 通过={}", id, pass);

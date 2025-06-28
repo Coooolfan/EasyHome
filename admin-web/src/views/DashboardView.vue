@@ -6,12 +6,14 @@
         <h1 class="welcome-title">👋 欢迎回来，{{ userInfo.username }}</h1>
         <p class="welcome-subtitle">今天是 {{ currentDate }}，祝您工作愉快！</p>
       </div>
-       <div class="welcome-right">
-      
-        <el-button type="success" size="large" @click="showReportDialog">
-          <el-icon><Document /></el-icon>
+      <div class="welcome-right">
+
+        <!-- <el-button type="success" size="large" @click="showReportDialog">
+          <el-icon>
+            <Document />
+          </el-icon>
           查看报告
-        </el-button>
+        </el-button> -->
       </div>
     </div>
 
@@ -29,7 +31,9 @@
               </div>
               <div class="stat-label">{{ stat.label }}</div>
               <div class="stat-trend" :class="stat.trendClass">
-                <el-icon><component :is="stat.trendIcon" /></el-icon>
+                <el-icon>
+                  <component :is="stat.trendIcon" />
+                </el-icon>
                 <span>{{ stat.trend }}</span>
               </div>
             </div>
@@ -46,16 +50,20 @@
           <template #header>
             <div class="card-header">
               <div class="header-left">
-                <el-icon class="header-icon"><TrendCharts /></el-icon>
+                <el-icon class="header-icon">
+                  <TrendCharts />
+                </el-icon>
                 <span class="header-title">数据趋势</span>
               </div>
               <el-button text type="primary" @click="refreshData">
-                <el-icon><Refresh /></el-icon>
+                <el-icon>
+                  <Refresh />
+                </el-icon>
                 刷新数据
               </el-button>
             </div>
           </template>
-          
+
           <!-- 真实图表容器 -->
           <div ref="chartRef" class="chart-container"></div>
         </el-card>
@@ -67,7 +75,9 @@
           <template #header>
             <div class="card-header">
               <div class="header-left">
-                <el-icon class="header-icon"><Clock /></el-icon>
+                <el-icon class="header-icon">
+                  <Clock />
+                </el-icon>
                 <span class="header-title">最近活动</span>
               </div>
             </div>
@@ -75,7 +85,9 @@
           <div class="activity-list">
             <div class="activity-item" v-for="(activity, index) in recentActivities" :key="index">
               <div class="activity-icon" :class="activity.type">
-                <el-icon><component :is="activity.icon" /></el-icon>
+                <el-icon>
+                  <component :is="activity.icon" />
+                </el-icon>
               </div>
               <div class="activity-content">
                 <div class="activity-title">{{ activity.title }}</div>
@@ -94,11 +106,15 @@
           <template #header>
             <div class="card-header">
               <div class="header-left">
-                <el-icon class="header-icon"><House /></el-icon>
+                <el-icon class="header-icon">
+                  <House />
+                </el-icon>
                 <span class="header-title">最近房源审核</span>
               </div>
               <el-button text type="primary" @click="viewAllHouses">
-                      查看全部 <el-icon><ArrowRight /></el-icon>
+                查看全部 <el-icon>
+                  <ArrowRight />
+                </el-icon>
               </el-button>
             </div>
           </template>
@@ -115,11 +131,7 @@
             </el-table-column>
             <el-table-column prop="status" label="状态" width="100" align="center">
               <template #default="scope">
-                <el-tag 
-                  :type="getStatusType(scope.row.status)" 
-                  size="small"
-                  class="status-tag"
-                >
+                <el-tag :type="getStatusType(scope.row.status)" size="small" class="status-tag">
                   {{ getStatusText(scope.row.status) }}
                 </el-tag>
               </template>
@@ -127,17 +139,21 @@
           </el-table>
         </el-card>
       </el-col>
-      
+
       <el-col :span="12">
         <el-card class="table-card">
           <template #header>
             <div class="card-header">
               <div class="header-left">
-                <el-icon class="header-icon"><User /></el-icon>
+                <el-icon class="header-icon">
+                  <User />
+                </el-icon>
                 <span class="header-title">最近用户注册</span>
               </div>
-               <el-button text type="primary" @click="viewAllUsers">
-                  查看全部 <el-icon><ArrowRight /></el-icon>
+              <el-button text type="primary" @click="viewAllUsers">
+                查看全部 <el-icon>
+                  <ArrowRight />
+                </el-icon>
               </el-button>
             </div>
           </template>
@@ -160,12 +176,7 @@
     </el-row>
 
     <!-- 添加房源模态框 -->
-    <el-dialog
-      v-model="addHouseVisible"
-      title="添加房源"
-      width="800px"
-      :before-close="handleCloseAddHouse"
-    >
+    <el-dialog v-model="addHouseVisible" title="添加房源" width="800px" :before-close="handleCloseAddHouse">
       <el-form :model="houseForm" :rules="houseRules" ref="houseFormRef" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -227,24 +238,14 @@
         </el-row>
 
         <el-form-item label="房源描述" prop="description">
-          <el-input
-            v-model="houseForm.description"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入房源描述"
-          />
+          <el-input v-model="houseForm.description" type="textarea" :rows="4" placeholder="请输入房源描述" />
         </el-form-item>
 
         <el-form-item label="房源图片">
-          <el-upload
-            class="upload-demo"
-            drag
-            action="#"
-            multiple
-            :auto-upload="false"
-            :on-change="handleImageChange"
-          >
-            <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+          <el-upload class="upload-demo" drag action="#" multiple :auto-upload="false" :on-change="handleImageChange">
+            <el-icon class="el-icon--upload">
+              <UploadFilled />
+            </el-icon>
             <div class="el-upload__text">
               将文件拖到此处，或<em>点击上传</em>
             </div>
@@ -268,12 +269,7 @@
     </el-dialog>
 
     <!-- 查看报告模态框 -->
-    <el-dialog
-      v-model="reportVisible"
-      title="系统报告"
-      width="900px"
-      :before-close="handleCloseReport"
-    >
+    <el-dialog v-model="reportVisible" title="系统报告" width="900px" :before-close="handleCloseReport">
       <el-tabs v-model="activeReportTab" class="report-tabs" @tab-change="handleTabChange">
 
         <!-- 业务报告 -->
@@ -283,21 +279,27 @@
               <el-col :span="8">
                 <el-statistic title="本月新增房源" :value="reportData.newHouses" suffix="套">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><House /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <House />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
               <el-col :span="8">
                 <el-statistic title="本月成交量" :value="reportData.transactions" suffix="套">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><Check /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <Check />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
               <el-col :span="8">
                 <el-statistic title="成交金额" :value="reportData.amount" suffix="万元">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><Money /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <Money />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
@@ -332,28 +334,36 @@
               <el-col :span="6">
                 <el-statistic title="总用户数" :value="reportData.totalUsers" suffix="人">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><User /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <User />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
               <el-col :span="6">
                 <el-statistic title="本月新增" :value="reportData.newUsers" suffix="人">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><UserFilled /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <UserFilled />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
               <el-col :span="6">
                 <el-statistic title="活跃用户" :value="reportData.activeUsers" suffix="人">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><StarFilled /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <StarFilled />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
               <el-col :span="6">
                 <el-statistic title="用户留存率" :value="reportData.retention" suffix="%">
                   <template #prefix>
-                    <el-icon style="vertical-align: -0.125em"><TrendCharts /></el-icon>
+                    <el-icon style="vertical-align: -0.125em">
+                      <TrendCharts />
+                    </el-icon>
                   </template>
                 </el-statistic>
               </el-col>
@@ -408,7 +418,9 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="exportReport" type="primary">
-            <el-icon><Download /></el-icon>
+            <el-icon>
+              <Download />
+            </el-icon>
             导出报告
           </el-button>
           <el-button @click="handleCloseReport">关闭</el-button>
@@ -423,7 +435,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive, nextTick, onUnmounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { 
+import {
   Plus, Document, Refresh, TrendCharts, Clock, House, User,
   ArrowUp, ArrowDown, UserFilled, OfficeBuilding, Warning,
   Check, Money, StarFilled, Download, UploadFilled, ArrowRight
@@ -432,6 +444,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import * as echarts from 'echarts'
+import axios from 'axios'
+
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -542,7 +556,7 @@ interface RecentUser {
   registerTime: string
 }
 
-const recentHouses = ref<RecentHouse[]>([])
+
 const recentUsers = ref<RecentUser[]>([])
 
 const getStatusType = (status: string) => {
@@ -588,6 +602,23 @@ const houseForm = reactive({
   address: '',
   description: ''
 })
+
+const userCount = ref(0)
+
+const fetchUserCount = async () => {
+  try {
+    const res = await axios.get('/api/user/cnt')
+    if (res.data && res.data.code === 'SUCCESS') {
+      userCount.value = res.data.data
+      // 转为字符串，若需要千分位可用 toLocaleString()
+      statsData.value[0].value = String(userCount.value)
+      // 或者：statsData.value[0].value = userCount.value.toLocaleString()
+    }
+  } catch (e) {
+    userCount.value = 0
+    statsData.value[0].value = '0'
+  }
+}
 
 const houseRules: FormRules = {
   title: [
@@ -647,6 +678,23 @@ const showAddHouseDialog = () => {
   addHouseVisible.value = true
 }
 
+const houseCount = ref(0)
+
+const fetchHouseCount = async () => {
+  try {
+    const res = await axios.get('/api/houses/cnt')
+    if (res.data && res.data.code === 'SUCCESS') {
+      houseCount.value = res.data.data
+      // 转为字符串，若需要千分位可用 toLocaleString()
+      statsData.value[1].value = String(houseCount.value)
+      // 或者：statsData.value[1].value = houseCount.value.toLocaleString()
+    }
+  } catch (e) {
+    houseCount.value = 0
+    statsData.value[1].value = '0'
+  }
+}
+
 // 关闭添加房源对话框
 const handleCloseAddHouse = () => {
   resetHouseForm()
@@ -676,9 +724,9 @@ const userActivityData = reactive({
 // 初始化趋势图表
 const initTrendChart = () => {
   if (!chartRef.value) return
-  
+
   trendChart = echarts.init(chartRef.value)
-  
+
   const option = {
     title: {
       text: '数据趋势',
@@ -802,21 +850,21 @@ const initTrendChart = () => {
       }
     ]
   }
-  
+
   trendChart.setOption(option)
 }
 
 /// 修改用户图表初始化函数
 const initUserChart = () => {
   if (!userChartRef.value) return
-  
+
   // 如果图表已存在，先销毁
   if (userChart) {
     userChart.dispose()
   }
-  
+
   userChart = echarts.init(userChartRef.value)
-  
+
   const option = {
     title: {
       text: '用户活跃度（24小时）',
@@ -927,9 +975,9 @@ const initUserChart = () => {
       }
     ]
   }
-  
+
   userChart.setOption(option)
-// 确保图表适应容器大小
+  // 确保图表适应容器大小
   setTimeout(() => {
     if (userChart) {
       userChart.resize()
@@ -955,10 +1003,10 @@ const refreshCharts = () => {
   trendData.users = trendData.users.map(() => Math.floor(Math.random() * 100) + 20)
   trendData.houses = trendData.houses.map(() => Math.floor(Math.random() * 50) + 15)
   trendData.transactions = trendData.transactions.map(() => Math.floor(Math.random() * 30) + 5)
-  
+
   userActivityData.activeUsers = userActivityData.activeUsers.map(() => Math.floor(Math.random() * 80) + 20)
   userActivityData.newUsers = userActivityData.newUsers.map(() => Math.floor(Math.random() * 15) + 1)
-  
+
   // 重新渲染图表
   if (trendChart) {
     trendChart.setOption({
@@ -969,7 +1017,7 @@ const refreshCharts = () => {
       ]
     })
   }
-  
+
   if (userChart) {
     userChart.setOption({
       series: [
@@ -978,19 +1026,109 @@ const refreshCharts = () => {
       ]
     })
   }
-  
+
   ElMessage.success('图表数据已刷新')
 }
 
+const pendingHouseCount = ref(0)
 
-onMounted(() => {
+const fetchPendingHouseCount = async () => {
+  try {
+    const res = await axios.get('/api/houses/records/received')
+    if (res.data && res.data.code === 'SUCCESS') {
+      // 假设返回的是房源数组
+      pendingHouseCount.value = Array.isArray(res.data.data) ? res.data.data.length : 0
+      statsData.value[2].value = String(pendingHouseCount.value)
+    }
+  } catch (e) {
+    pendingHouseCount.value = 0
+    statsData.value[2].value = '0'
+  }
+}
+
+const adminCount = ref(0)
+
+const fetchAdminCount = async () => {
+  try {
+    const res = await axios.get('/api/user/admin/cnt')
+    if (res.data && res.data.code === 'SUCCESS') {
+      adminCount.value = res.data.data
+      statsData.value[3].value = String(adminCount.value)
+    }
+  } catch (e) {
+    adminCount.value = 0
+    statsData.value[3].value = '0'
+  }
+}
+const recentHouses = ref<RecentHouse[]>([])
+
+const fetchRecentHouses = async () => {
+  try {
+    const res = await axios.get('/api/admin/review/house/received')
+    if (res.data && res.data.code === 'SUCCESS' && Array.isArray(res.data.data)) {
+      // 只取前4条，且字段适配表格
+      recentHouses.value = res.data.data.slice(0, 4).map((item: any) => ({
+        title: item.title,
+        price: item.price ? `¥${item.price}万` : '-',
+        status: item.status || 'pending'
+      }))
+    } else {
+      recentHouses.value = []
+    }
+  } catch (e) {
+    recentHouses.value = []
+  }
+}
+
+const fetchRecentUsers = async () => {
+  try {
+    const res = await axios.get('/api/admin/users', {
+      params: {
+        current: 1,
+        size: 4,
+        // 假如后端支持排序，可以加上：sortBy: 'createdAt', order: 'desc'
+      }
+    })
+    if (res.data && res.data.code === 'SUCCESS' && Array.isArray(res.data.data)) {
+      // 只取前4条，字段适配表格
+      recentUsers.value = res.data.data.slice(0, 4).map((item: any) => ({
+        username: item.username,
+        email: item.email,
+        registerTime: item.createdAt ? item.createdAt.slice(5, 10) : '-'
+      }))
+    } else {
+      recentUsers.value = []
+    }
+  } catch (e) {
+    recentUsers.value = []
+  }
+}
+
+const resetTrendData = () => {
+  // 全部置0
+  trendData.users = trendData.users.map(() => 0)
+  trendData.houses = trendData.houses.map(() => 0)
+  trendData.transactions = trendData.transactions.map(() => 0)
+  // 当天（最后一个）赋实际值（用接口获取的最新统计数据）
+  trendData.users[trendData.users.length - 1] = Number(statsData.value[0].value) || 0
+  trendData.houses[trendData.houses.length - 1] = Number(statsData.value[1].value) || 0
+  trendData.transactions[trendData.transactions.length - 1] = Number(statsData.value[2].value) || 0
+}
+
+onMounted(async() => {
+  await fetchUserCount()
+  await fetchHouseCount()
+  await fetchPendingHouseCount()
+  await fetchAdminCount()
+  fetchRecentHouses()
+  fetchRecentUsers()
   loadDashboardData()
-  
-  // 初始化图表
+
   nextTick(() => {
+    resetTrendData()      // 用接口获取的最新数据重置趋势图
     initTrendChart()
   })
-  
+
   // 监听窗口大小变化
   const handleResize = () => {
     if (trendChart) {
@@ -1000,9 +1138,9 @@ onMounted(() => {
       userChart.resize()
     }
   }
-  
+
   window.addEventListener('resize', handleResize)
-  
+
   // 组件卸载时清理
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
@@ -1020,22 +1158,22 @@ onMounted(() => {
 // 修改查看报告对话框中的用户图表初始化
 // 保留这个完整的定义，删除另一个
 // 修改显示报告对话框函数
-const showReportDialog = () => {
-  reportVisible.value = true
-  
-  // 等待对话框完全渲染后初始化图表
-  nextTick(() => {
-    setTimeout(() => {
-      initUserChart()
-      // 监听标签页切换
-      setTimeout(() => {
-        if (userChart) {
-          userChart.resize()
-        }
-      }, 200)
-    }, 300) // 增加延迟时间
-  })
-}
+// const showReportDialog = () => {
+//   reportVisible.value = true
+
+//   // 等待对话框完全渲染后初始化图表
+//   nextTick(() => {
+//     setTimeout(() => {
+//       initUserChart()
+//       // 监听标签页切换
+//       setTimeout(() => {
+//         if (userChart) {
+//           userChart.resize()
+//         }
+//       }, 200)
+//     }, 300) // 增加延迟时间
+//   })
+// }
 
 // 重置房源表单
 const resetHouseForm = () => {
@@ -1063,20 +1201,20 @@ const handleImageChange = (file: any) => {
 // 提交房源
 const submitHouse = async () => {
   if (!houseFormRef.value) return
-  
+
   try {
     const valid = await houseFormRef.value.validate()
     if (!valid) return
-    
+
     submitting.value = true
-    
+
     // 模拟提交
     setTimeout(() => {
       submitting.value = false
       ElMessage.success('房源添加成功！')
       handleCloseAddHouse()
     }, 2000)
-    
+
   } catch (error) {
     submitting.value = false
     console.error('表单验证失败:', error)
@@ -1112,7 +1250,7 @@ const loadDashboardData = async () => {
     { title: '市中心商圈住宅', price: '¥180万', status: 'pending' },
     { title: '湖景别墅', price: '¥350万', status: 'approved' }
   ]
-  
+
   recentUsers.value = [
     { username: '张三', email: 'zhangsan@email.com', registerTime: '01-15' },
     { username: '李四', email: 'lisi@email.com', registerTime: '01-14' },
@@ -1207,10 +1345,21 @@ const loadDashboardData = async () => {
   color: white;
 }
 
-.user-stat .stat-icon { background: linear-gradient(135deg, #409EFF, #36CFC9); }
-.house-stat .stat-icon { background: linear-gradient(135deg, #67C23A, #52C41A); }
-.pending-stat .stat-icon { background: linear-gradient(135deg, #E6A23C, #FAAD14); }
-.admin-stat .stat-icon { background: linear-gradient(135deg, #F56C6C, #FF4D4F); }
+.user-stat .stat-icon {
+  background: linear-gradient(135deg, #409EFF, #36CFC9);
+}
+
+.house-stat .stat-icon {
+  background: linear-gradient(135deg, #67C23A, #52C41A);
+}
+
+.pending-stat .stat-icon {
+  background: linear-gradient(135deg, #E6A23C, #FAAD14);
+}
+
+.admin-stat .stat-icon {
+  background: linear-gradient(135deg, #F56C6C, #FF4D4F);
+}
 
 .stat-info {
   flex: 1;
@@ -1235,9 +1384,17 @@ const loadDashboardData = async () => {
   gap: 4px;
 }
 
-.trend-up { color: #67C23A; }
-.trend-down { color: #F56C6C; }
-.trend-neutral { color: #909399; }
+.trend-up {
+  color: #67C23A;
+}
+
+.trend-down {
+  color: #F56C6C;
+}
+
+.trend-neutral {
+  color: #909399;
+}
 
 /* 内容区域 - 关键修改部分 */
 .content-section {
@@ -1245,11 +1402,13 @@ const loadDashboardData = async () => {
 }
 
 /* 统一两个卡片的高度 */
-.chart-card, .activity-card {
+.chart-card,
+.activity-card {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f0f0;
-  height: 420px; /* 设置固定高度 */
+  height: 420px;
+  /* 设置固定高度 */
   display: flex;
   flex-direction: column;
 }
@@ -1260,7 +1419,8 @@ const loadDashboardData = async () => {
   padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
-  height: 65px; /* 固定头部高度 */
+  height: 65px;
+  /* 固定头部高度 */
   display: flex;
   align-items: center;
 }
@@ -1306,16 +1466,19 @@ const loadDashboardData = async () => {
 
 /* 图表区域 - 缩小高度 */
 .chart-container {
-  height: 320px; /* 从350px缩小到320px */
+  height: 320px;
+  /* 从350px缩小到320px */
   width: 100%;
   flex: 1;
 }
 
 /* 活动列表 - 确保高度匹配 */
 .activity-list {
-  height: 320px; /* 与图表高度保持一致 */
+  height: 320px;
+  /* 与图表高度保持一致 */
   overflow-y: auto;
-  padding-right: 6px; /* 为滚动条留出空间 */
+  padding-right: 6px;
+  /* 为滚动条留出空间 */
 }
 
 .activity-item {
@@ -1571,12 +1734,13 @@ const loadDashboardData = async () => {
     text-align: center;
     gap: 20px;
   }
-  
+
   .stats-section .el-col {
     margin-bottom: 16px;
   }
-  
-  .chart-card, .activity-card {
+
+  .chart-card,
+  .activity-card {
     height: auto;
     min-height: 400px;
   }
@@ -1586,35 +1750,36 @@ const loadDashboardData = async () => {
   .dashboard {
     padding: 16px;
   }
-  
+
   .welcome-section {
     padding: 24px;
   }
-  
+
   .stat-card {
     padding: 20px;
     height: 120px;
   }
-  
+
   .stat-value {
     font-size: 24px;
   }
-  
+
   .welcome-title {
     font-size: 24px;
   }
-  
+
   .content-section .el-col,
   .table-section .el-col {
     margin-bottom: 16px;
   }
-  
+
   .chart-container,
   .activity-list {
     height: 280px;
   }
-  
-  .chart-card, .activity-card {
+
+  .chart-card,
+  .activity-card {
     height: auto;
     min-height: 350px;
   }

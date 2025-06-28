@@ -1,5 +1,6 @@
 package com.coooolfan.easyhome.controller;
 
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -60,7 +61,6 @@ public class HouseController {
         houseService.addHouseWithVec(houseDTO);
         return Result.ok(null);
     }
-
 
 
     @PutMapping("/update")
@@ -139,4 +139,21 @@ public class HouseController {
         return Result.ok(null);
     }
 
+    @SaCheckRole("role_admin")
+    @GetMapping("/cnt")
+    @Operation(summary = "获取房屋信息总数")
+    public Result<Long> getHouseCount() {
+        log.info("获取房屋信息总数");
+        Long count = houseService.count();
+        return Result.ok(count);
+    }
+
+    @SaCheckRole("role_admin")
+    @GetMapping("/records/received")
+    @Operation(summary = "获取已接收的房屋发布记录")
+    public Result<Long> getReceivedRecordsCount() {
+        log.info("获取已接收的房屋发布记录");
+        Long count = houseRecordService.countReceivedRecords();
+        return Result.ok(count);
+    }
 }

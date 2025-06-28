@@ -23,4 +23,6 @@ public interface HouseRecordService
     Long getUserIdByRecordId(Long id);
 
     void removeWithVecByRecordId(Long id);
+
+    Long countReceivedRecords();
 }

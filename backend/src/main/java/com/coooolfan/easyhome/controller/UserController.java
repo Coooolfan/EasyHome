@@ -1,11 +1,13 @@
 package com.coooolfan.easyhome.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.coooolfan.easyhome.pojo.dto.LoginDTO;
 import com.coooolfan.easyhome.pojo.dto.ProfileDTO;
 import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
+import com.coooolfan.easyhome.pojo.entity.SysUser;
 import com.coooolfan.easyhome.pojo.entity.UserNotification;
 import com.coooolfan.easyhome.pojo.vo.UserVO;
 import com.coooolfan.easyhome.response.Result;
@@ -33,8 +35,6 @@ public class UserController {
     @Resource
     private SysUserService sysUserService;
 
-    @Resource
-    private NotificationService notificationService;
 
     @PostMapping("/login")
     @Operation(summary = "登录接口")
@@ -103,5 +103,23 @@ public class UserController {
         sysUserService.removeById(userId);
         StpUtil.logout();
         return Result.ok("账号已删除");
+    }
+
+    @SaCheckRole("role_admin")
+    @GetMapping("/cnt")
+    @Operation(summary = "获取用户数量")
+    public Result<Long> getUserCount() {
+        log.info("获取用户数量");
+        Long count = sysUserService.count(new QueryWrapper<>());
+        return Result.ok(count);
+    }
+
+    @SaCheckRole("role_admin")
+    @GetMapping("/admin/cnt")
+    @Operation(summary = "获取管理员数量")
+    public Result<Long> getAdminCount() {
+        log.info("获取管理员数量");
+        Long count = sysUserService.count(new QueryWrapper<SysUser>().eq("role", "role_admin"));
+        return Result.ok(count);
     }
 }

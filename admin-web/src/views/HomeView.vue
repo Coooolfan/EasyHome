@@ -19,15 +19,7 @@
               <el-icon><Search /></el-icon>
             </el-button>
           </el-tooltip>
-          
-          <!-- 通知 -->
-          <el-tooltip content="消息通知" placement="bottom">
-            <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
-              <el-button class="action-btn" circle @click="showNotifications">
-                <el-icon><Bell /></el-icon>
-              </el-button>
-            </el-badge>
-          </el-tooltip>
+
           
           <!-- 设置 -->
           <el-tooltip content="系统设置" placement="bottom">
@@ -222,6 +214,7 @@ const userInfo = ref({
   username: userStore.userInfo.username || '管理员',
   avatar: ''
 })
+
 
 // 🔧 添加获取头像显示文字的函数（与个人中心保持一致）
 const getAvatarText = (name: string) => {
