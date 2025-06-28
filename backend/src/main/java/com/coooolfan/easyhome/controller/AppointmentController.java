@@ -3,12 +3,16 @@ package com.coooolfan.easyhome.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.coooolfan.easyhome.message.AppointmentProducer;
 import com.coooolfan.easyhome.pojo.dto.AppointmentDTO;
+import com.coooolfan.easyhome.pojo.entity.AppointmentRecord;
 import com.coooolfan.easyhome.response.Result;
+import com.coooolfan.easyhome.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 用户提交预约请求接口
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AppointmentController {
 
     private final AppointmentProducer appointmentProducer;
+    private final AppointmentService appointmentService;
 
     @PostMapping("/submit")
     @Operation(summary = "提交预约请求")
@@ -32,5 +37,12 @@ public class AppointmentController {
 
         appointmentProducer.send(dto);
         return Result.ok(null);
+    }
+
+    @GetMapping("list")
+    @Operation(summary = "获取用户预约列表")
+    public Result<List<AppointmentRecord>> list() {
+        List<AppointmentRecord> appointments = appointmentService.getAppointments();
+        return Result.ok(appointments);
     }
 }

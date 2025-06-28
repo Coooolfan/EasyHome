@@ -22,24 +22,63 @@
           />
         </el-form-item>
         
-        <el-form-item label="价格范围">
-          <el-select 
-            v-model="searchForm.priceRange" 
-            placeholder="请选择价格范围"
+        <el-form-item label="房源地址">
+          <el-input 
+            v-model="searchForm.address" 
+            placeholder="请输入地址" 
             clearable
-          >
-            <el-option label="不限价格" value="" />
-            <el-option label="100万以下" value="0-100" />
-            <el-option label="100-200万" value="100-200" />
-            <el-option label="200-300万" value="200-300" />
-            <el-option label="300-500万" value="300-500" />
-            <el-option label="500万以上" value="500-999999" />
-          </el-select>
+          />
+        </el-form-item>
+        
+        <el-form-item label="价格区间">
+          <div class="range-input">
+            <el-input-number 
+              v-model="searchForm.minPrice" 
+              :min="0" 
+              :precision="0"
+              placeholder="最低价" 
+              :controls="false"
+              size="small"
+            />
+            <span class="range-separator">-</span>
+            <el-input-number 
+              v-model="searchForm.maxPrice" 
+              :min="0" 
+              :precision="0"
+              placeholder="最高价" 
+              :controls="false"
+              size="small"
+            />
+            <span class="range-unit">万元</span>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="面积区间">
+          <div class="range-input">
+            <el-input-number 
+              v-model="searchForm.minArea" 
+              :min="0" 
+              :precision="0"
+              placeholder="最小" 
+              :controls="false"
+              size="small"
+            />
+            <span class="range-separator">-</span>
+            <el-input-number 
+              v-model="searchForm.maxArea" 
+              :min="0" 
+              :precision="0"
+              placeholder="最大" 
+              :controls="false"
+              size="small"
+            />
+            <span class="range-unit">㎡</span>
+          </div>
         </el-form-item>
         
         <el-form-item label="户型">
           <el-select 
-            v-model="searchForm.houseType" 
+            v-model="searchForm.rooms" 
             placeholder="请选择户型"
             clearable
           >
@@ -50,13 +89,62 @@
             <el-option label="4室及以上" value="4室+" />
           </el-select>
         </el-form-item>
-
-        <el-form-item label="发布者">
-          <el-input 
-            v-model="searchForm.publisherName" 
-            placeholder="请输入发布者" 
+        
+        <el-form-item label="装修">
+          <el-select 
+            v-model="searchForm.decoration" 
+            placeholder="请选择装修"
             clearable
-          />
+          >
+            <el-option label="不限装修" value="" />
+            <el-option label="毛坯" value="毛坯" />
+            <el-option label="简装" value="简装" />
+            <el-option label="精装" value="精装" />
+            <el-option label="豪装" value="豪装" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="朝向">
+          <el-select 
+            v-model="searchForm.orientation" 
+            placeholder="请选择朝向"
+            clearable
+          >
+            <el-option label="不限朝向" value="" />
+            <el-option label="东" value="东" />
+            <el-option label="南" value="南" />
+            <el-option label="西" value="西" />
+            <el-option label="北" value="北" />
+            <el-option label="东南" value="东南" />
+            <el-option label="东北" value="东北" />
+            <el-option label="西南" value="西南" />
+            <el-option label="西北" value="西北" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="建造年份">
+          <div class="range-input">
+            <el-input-number 
+              v-model="searchForm.minYear" 
+              :min="1980" 
+              :max="2025"
+              :precision="0"
+              placeholder="最早" 
+              :controls="false"
+              size="small"
+            />
+            <span class="range-separator">-</span>
+            <el-input-number 
+              v-model="searchForm.maxYear" 
+              :min="1980" 
+              :max="2025"
+              :precision="0"
+              placeholder="最晚" 
+              :controls="false"
+              size="small"
+            />
+            <span class="range-unit">年</span>
+          </div>
         </el-form-item>
 
         <el-form-item label="排序方式">
@@ -65,11 +153,12 @@
             placeholder="请选择排序方式"
             clearable
           >
-            <el-option label="最新发布" value="time-desc" />
+            <el-option label="最新发布" value="createdAt-desc" />
             <el-option label="价格从低到高" value="price-asc" />
             <el-option label="价格从高到低" value="price-desc" />
             <el-option label="面积从小到大" value="area-asc" />
             <el-option label="面积从大到小" value="area-desc" />
+            <el-option label="建造年份新到旧" value="buildYear-desc" />
           </el-select>
         </el-form-item>
 
@@ -87,66 +176,67 @@
     <!-- 表格区域 -->
     <div class="table-section">
       <el-card class="table-card">
-        <!-- 🔧 调整表格列宽，确保操作列不被遮挡 -->
-        <!-- 🔧 移除固定列，调整表格布局 -->
-<!-- 🔧 优化表格列宽分配，充分利用容器宽度 -->
-<el-table :data="displayHouseList" style="width: 100%" v-loading="loading" :show-overflow-tooltip="true">
-  <el-table-column prop="id" label="ID" width="60" />
-  
-  <!-- 🔧 房源标题列使用min-width让其自适应 -->
-  <el-table-column prop="title" label="房源标题" min-width="250" :show-overflow-tooltip="true" />
-  
-  <el-table-column prop="price" label="总价" width="100" align="right">
-    <template #default="scope">
-      <span>{{ formatPrice(scope.row.price) }}万</span>
-    </template>
-  </el-table-column>
-  
-  <el-table-column prop="area" label="面积" width="80" align="center">
-    <template #default="scope">
-      {{ scope.row.area }}㎡
-    </template>
-  </el-table-column>
-  
-  <!-- 🔧 位置列使用min-width让其自适应 -->
-  <el-table-column prop="location" label="位置" min-width="150" :show-overflow-tooltip="true" />
-  
-  <el-table-column prop="houseType" label="户型" width="90" />
-  
-  <el-table-column prop="publisherName" label="发布者" width="90" :show-overflow-tooltip="true" />
-  
-  <el-table-column prop="publishTime" label="发布时间" width="110" align="center">
-    <template #default="scope">
-      {{ formatDate(scope.row.publishTime) }}
-    </template>
-  </el-table-column>
-  
-  <!-- 🔧 操作列固定宽度 -->
-  <!-- 操作列宽度调整为180px -->
-<el-table-column label="操作" width="180">
-  <template #default="scope">
-    <div class="action-buttons">
-      <el-button 
-        type="primary" 
-        size="small" 
-        @click="handleEdit(scope.row)"
-        :icon="Edit"
-      >
-        编辑
-      </el-button>
-      <el-button 
-        type="info" 
-        size="small" 
-        @click="handleView(scope.row)"
-        :icon="View"
-      >
-        详情
-      </el-button>
-    </div>
-  </template>
-</el-table-column>
-</el-table>
-
+        <el-table :data="displayHouseList" style="width: 100%" v-loading="loading" :show-overflow-tooltip="true">
+          <el-table-column prop="id" label="ID" width="60" />
+          
+          <!-- 房源标题列使用min-width让其自适应 -->
+          <el-table-column prop="title" label="房源标题" min-width="200" :show-overflow-tooltip="true" />
+          
+          <el-table-column prop="price" label="总价" width="100" align="right">
+            <template #default="scope">
+              <span>{{ formatPrice(scope.row.price) }}万</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="unitPrice" label="单价" width="100" align="right">
+            <template #default="scope">
+              <span>{{ scope.row.unitPrice }}元/㎡</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="area" label="面积" width="80" align="center">
+            <template #default="scope">
+              {{ scope.row.area }}㎡
+            </template>
+          </el-table-column>
+          
+          <!-- 位置列使用min-width让其自适应 -->
+          <el-table-column prop="address" label="地址" min-width="150" :show-overflow-tooltip="true" />
+          
+          <el-table-column prop="rooms" label="户型" width="90" />
+          
+          <el-table-column prop="decoration" label="装修" width="80" />
+          
+          <el-table-column prop="createdAt" label="发布时间" width="110" align="center">
+            <template #default="scope">
+              {{ formatDate(scope.row.createdAt) }}
+            </template>
+          </el-table-column>
+          
+          <!-- 操作列固定宽度 -->
+          <el-table-column label="操作" width="180">
+            <template #default="scope">
+              <div class="action-buttons">
+                <el-button 
+                  type="primary" 
+                  size="small" 
+                  @click="handleEdit(scope.row)"
+                  :icon="Edit"
+                >
+                  编辑
+                </el-button>
+                <el-button 
+                  type="info" 
+                  size="small" 
+                  @click="handleView(scope.row)"
+                  :icon="View"
+                >
+                  详情
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
       </el-card>
     </div>
 
@@ -164,7 +254,7 @@
       />
     </div>
 
-    <!-- 🔧 优化新增/编辑对话框 -->
+    <!-- 新增/编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
       :title="dialogTitle"
@@ -188,7 +278,6 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="价格" prop="price">
-              <!-- 🔧 修复数字输入框显示问题 -->
               <el-input-number 
                 v-model="houseForm.price" 
                 :min="0" 
@@ -204,7 +293,6 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="面积" prop="area">
-              <!-- 🔧 修复数字输入框显示问题 -->
               <el-input-number 
                 v-model="houseForm.area" 
                 :min="0" 
@@ -219,11 +307,26 @@
           </el-col>
         </el-row>
 
-        <!-- 第二行：房型和位置 -->
+        <!-- 单价 - 自动计算 -->
+        <el-form-item label="单价" prop="unitPrice">
+          <el-input-number 
+            v-model="houseForm.unitPrice" 
+            :min="0" 
+            :step="100"
+            :precision="0"
+            placeholder="元/㎡"
+            style="width: 100%"
+            :controls="false"
+          >
+            <template #append>元/㎡</template>
+          </el-input-number>
+        </el-form-item>
+
+        <!-- 第二行：房型和地址 -->
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="房型" prop="houseType">
-              <el-select v-model="houseForm.houseType" placeholder="请选择房型" style="width: 100%">
+            <el-form-item label="户型" prop="rooms">
+              <el-select v-model="houseForm.rooms" placeholder="请选择户型" style="width: 100%">
                 <el-option label="一室一厅" value="1室1厅" />
                 <el-option label="两室一厅" value="2室1厅" />
                 <el-option label="三室两厅" value="3室2厅" />
@@ -233,42 +336,90 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="位置" prop="location">
-              <el-input v-model="houseForm.location" placeholder="请输入位置" />
+            <el-form-item label="地址" prop="address">
+              <el-input v-model="houseForm.address" placeholder="请输入地址" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <!-- 第三行：发布者和联系电话 -->
+        <!-- 第三行：楼层和建造年份 -->
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="发布者" prop="publisherName">
-              <el-input v-model="houseForm.publisherName" placeholder="请输入发布者姓名" />
+            <el-form-item label="楼层" prop="floor">
+              <el-input v-model="houseForm.floor" placeholder="请输入楼层，如：5/18" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="联系电话" prop="contactPhone">
-              <el-input v-model="houseForm.contactPhone" placeholder="请输**系电话" />
+            <el-form-item label="建造年份" prop="buildYear">
+              <el-input-number 
+                v-model="houseForm.buildYear" 
+                :min="1980" 
+                :max="2025"
+                :precision="0"
+                :controls="false"
+                style="width: 100%"
+                placeholder="建造年份"
+              >
+                <template #append>年</template>
+              </el-input-number>
             </el-form-item>
           </el-col>
         </el-row>
 
-        <!-- 房源描述 -->
-        <el-form-item label="房源描述" prop="description">
-          <el-input 
-            v-model="houseForm.description" 
-            type="textarea" 
-            :rows="3"
-            placeholder="请输入房源详细描述..."
-            maxlength="200"
-            show-word-limit
-          />
+        <!-- 第四行：装修和朝向 -->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="装修" prop="decoration">
+              <el-select v-model="houseForm.decoration" placeholder="请选择装修" style="width: 100%">
+                <el-option label="毛坯" value="毛坯" />
+                <el-option label="简装" value="简装" />
+                <el-option label="精装" value="精装" />
+                <el-option label="豪装" value="豪装" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="朝向" prop="orientation">
+              <el-select v-model="houseForm.orientation" placeholder="请选择朝向" style="width: 100%">
+                <el-option label="东" value="东" />
+                <el-option label="南" value="南" />
+                <el-option label="西" value="西" />
+                <el-option label="北" value="北" />
+                <el-option label="东南" value="东南" />
+                <el-option label="东北" value="东北" />
+                <el-option label="西南" value="西南" />
+                <el-option label="西北" value="西北" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 图片URL -->
+        <el-form-item label="图片URL" prop="image">
+          <el-input v-model="houseForm.image" placeholder="请输入图片URL" />
+        </el-form-item>
+        
+        <!-- 标签 -->
+        <el-form-item label="标签">
+          <el-select
+            v-model="houseForm.tag"
+            multiple
+            placeholder="请选择标签"
+            style="width: 100%"
+          >
+            <el-option label="近地铁" value="近地铁" />
+            <el-option label="学区房" value="学区房" />
+            <el-option label="南北通透" value="南北通透" />
+            <el-option label="电梯房" value="电梯房" />
+            <el-option label="拎包入住" value="拎包入住" />
+            <el-option label="首次出租" value="首次出租" />
+          </el-select>
         </el-form-item>
       </el-form>
       
       <template #footer>
         <div class="dialog-footer">
-          <!-- 🔧 编辑时显示删除按钮 -->
+          <!-- 编辑时显示删除按钮 -->
           <div class="footer-left">
             <el-button 
               v-if="isEdit" 
@@ -281,7 +432,11 @@
           </div>
           <div class="footer-right">
             <el-button @click="dialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="handleSubmit">
+            <el-button 
+              type="primary" 
+              @click="handleSubmit"
+              :loading="submitLoading"
+            >
               {{ isEdit ? '更新' : '新增' }}
             </el-button>
           </div>
@@ -306,8 +461,8 @@
               <span class="info-value">{{ currentHouse.id }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">发布者</span>
-              <span class="info-value">{{ currentHouse.publisherName }}</span>
+              <span class="info-label">用户ID</span>
+              <span class="info-value">{{ currentHouse.userId }}</span>
             </div>
             <div class="info-item full-width">
               <span class="info-label">房源标题</span>
@@ -318,32 +473,57 @@
               <span class="info-value">{{ formatPrice(currentHouse.price) }}万</span>
             </div>
             <div class="info-item">
+              <span class="info-label">单价</span>
+              <span class="info-value">{{ currentHouse.unitPrice }}元/㎡</span>
+            </div>
+            <div class="info-item">
               <span class="info-label">面积</span>
               <span class="info-value">{{ currentHouse.area }}㎡</span>
             </div>
             <div class="info-item">
-              <span class="info-label">单价</span>
-              <span class="info-value">{{ calculateUnitPrice(currentHouse.price, currentHouse.area) }}元/㎡</span>
-            </div>
-            <div class="info-item">
               <span class="info-label">户型</span>
-              <span class="info-value">{{ currentHouse.houseType }}</span>
+              <span class="info-value">{{ currentHouse.rooms }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">位置</span>
-              <span class="info-value">{{ currentHouse.location }}</span>
+              <span class="info-label">楼层</span>
+              <span class="info-value">{{ currentHouse.floor }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">联系电话</span>
-              <span class="info-value">{{ currentHouse.contactPhone }}</span>
+              <span class="info-label">朝向</span>
+              <span class="info-value">{{ currentHouse.orientation }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">装修</span>
+              <span class="info-value">{{ currentHouse.decoration }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">建造年份</span>
+              <span class="info-value">{{ currentHouse.buildYear }}年</span>
             </div>
             <div class="info-item">
               <span class="info-label">发布时间</span>
-              <span class="info-value">{{ formatDateTime(currentHouse.publishTime) }}</span>
+              <span class="info-value">{{ formatDateTime(currentHouse.createdAt) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">更新时间</span>
+              <span class="info-value">{{ formatDateTime(currentHouse.updatedAt) }}</span>
             </div>
             <div class="info-item full-width">
-              <span class="info-label">房源描述</span>
-              <span class="info-value">{{ currentHouse.description || '暂无描述' }}</span>
+              <span class="info-label">详细地址</span>
+              <span class="info-value">{{ currentHouse.address }}</span>
+            </div>
+            <div class="info-item full-width" v-if="currentHouse.tag && currentHouse.tag.length > 0">
+              <span class="info-label">标签</span>
+              <div class="tag-list">
+                <el-tag 
+                  v-for="(tag, index) in currentHouse.tag" 
+                  :key="index" 
+                  size="small"
+                  class="house-tag"
+                >
+                  {{ tag }}
+                </el-tag>
+              </div>
             </div>
           </div>
         </div>
@@ -352,16 +532,18 @@
         <div class="info-section">
           <h3 class="section-title">房源图片</h3>
           <div class="images-container">
-            <div v-if="!currentHouse.images || currentHouse.images.length === 0" class="empty-state">
+            <div v-if="!currentHouse.image" class="empty-state">
               暂无图片
             </div>
             <div v-else class="image-gallery">
-              <div
-                v-for="(img, index) in currentHouse.images"
-                :key="index"
-                class="house-image-placeholder"
-              >
-                图片 {{ index + 1 }}
+              <div class="house-image-placeholder">
+                <img 
+                  v-if="currentHouse.image" 
+                  :src="currentHouse.image" 
+                  alt="房源图片"
+                  class="house-image"
+                />
+                <div v-else class="no-image">暂无图片</div>
               </div>
             </div>
           </div>
@@ -372,23 +554,42 @@
 </template>
 
 <script setup lang="ts">
-// JavaScript 部分保持不变
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { Plus, View, Delete, Search, RefreshRight, Edit } from '@element-plus/icons-vue'
+import axios from 'axios'
 
+// 修改房源接口定义
 interface House {
   id: number
   title: string
+  address: string
   price: number
+  unitPrice: number
   area: number
-  houseType: string
-  location: string
-  description: string
-  publisherName: string
-  contactPhone: string
-  publishTime: string
-  images?: string[]
+  rooms: string
+  floor: string
+  buildYear?: number | undefined // 修改为可选或允许undefined
+  orientation: string
+  decoration: string
+  image: string
+  createdAt: string
+  updatedAt: string
+  tag: string[]
+  userId: number
+}
+
+// 定义API响应接口
+interface HouseResponse {
+  code: string
+  message: string
+  data: {
+    size: number
+    records: House[]
+    current: number
+    total: number
+  }
+  timestamp: number
 }
 
 const loading = ref(false)
@@ -396,45 +597,85 @@ const dialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
+const submitLoading = ref(false) // 提交加载状态
 
 // 时间格式化函数
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
-  return dateStr.split(' ')[0]
+  try {
+    const date = new Date(dateStr)
+    return date.toISOString().split('T')[0]
+  } catch (e) {
+    return dateStr
+  }
 }
 
 const formatDateTime = (dateStr: string) => {
-  return dateStr || ''
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  } catch (e) {
+    return dateStr
+  }
 }
 
-// 搜索表单
+// 搜索表单 - 适配后端DTO
 const searchForm = reactive({
   title: '',
-  priceRange: '',
-  houseType: '',
-  publisherName: '',
-  sortBy: 'time-desc'
+  address: '',
+  minPrice: 0,
+  maxPrice: 0,
+  minArea: 0,
+  maxArea: 0,
+  rooms: '',
+  decoration: '',
+  orientation: '',
+  minYear: 0, 
+  maxYear: 2025, // 设置最晚年份默认为2025
+  sortBy: 'createdAt-desc'
 })
 
+// 编辑或新增的房源表单
 const houseForm = reactive({
   id: 0,
   title: '',
+  address: '',
   price: 0,
+  unitPrice: 0,
   area: 0,
-  houseType: '',
-  location: '',
-  description: '',
-  publisherName: '',
-  contactPhone: '',
-  publishTime: ''
+  rooms: '',
+  floor: '',
+  buildYear: undefined, // 修改为undefined，去除默认值
+  orientation: '',
+  decoration: '',
+  image: '',
+  tag: [] as string[],
+  userId: 0,
+  createdAt: '',
+  updatedAt: ''
+})
+
+// 当价格或面积改变时，自动计算单价
+watch([() => houseForm.price, () => houseForm.area], ([price, area]) => {
+  if (price > 0 && area > 0) {
+    houseForm.unitPrice = Math.round((price * 10000) / area)
+  }
 })
 
 const currentHouse = ref<House>({} as House)
 
-// 数据管理 - 分离原始数据和显示数据
-const originalHouseList = ref<House[]>([])
+// 数据管理
 const displayHouseList = ref<House[]>([])
 
+// 分页信息
 const pagination = reactive({
   page: 1,
   size: 10,
@@ -443,6 +684,7 @@ const pagination = reactive({
 
 const dialogTitle = computed(() => isEdit.value ? '编辑房源' : '新增房源')
 
+// 表单验证规则
 const rules = {
   title: [
     { required: true, message: '请输入房源标题', trigger: 'blur' }
@@ -453,226 +695,227 @@ const rules = {
   area: [
     { required: true, message: '请输入面积', trigger: 'blur' }
   ],
-  houseType: [
-    { required: true, message: '请选择房型', trigger: 'change' }
+  unitPrice: [
+    { required: true, message: '请输入单价', trigger: 'blur' }
   ],
-  location: [
-    { required: true, message: '请输入位置', trigger: 'blur' }
+  rooms: [
+    { required: true, message: '请选择户型', trigger: 'change' }
   ],
-  publisherName: [
-    { required: true, message: '请输入发布者', trigger: 'blur' }
+  address: [
+    { required: true, message: '请输入地址', trigger: 'blur' }
   ],
-  contactPhone: [
-    { required: true, message: '请输**系电话', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  floor: [
+    { required: true, message: '请输入楼层', trigger: 'blur' }
+  ],
+  buildYear: [
+    { required: true, message: '请输入建造年份', trigger: 'blur' }
+  ],
+  decoration: [
+    { required: true, message: '请选择装修', trigger: 'change' }
+  ],
+  orientation: [
+    { required: true, message: '请选择朝向', trigger: 'change' }
   ]
 }
 
-// 初始化模拟数据
-const initMockData = () => {
-  const mockData: House[] = [
-    {
-      id: 1,
-      title: '阳光花园精装三居室',
-      price: 650,
-      area: 120,
-      houseType: '3室2厅',
-      location: '北京市朝阳区望京街道',
-      description: '精装修，南北通透，采光好，交通便利',
-      publisherName: '张先生',
-      contactPhone: '13888888888',
-      publishTime: '2024-01-15 10:30:00',
-      images: ['house1.jpg', 'house2.jpg']
-    },
-    {
-      id: 2,
-      title: '中央公园豪华四居室',
-      price: 1200,
-      area: 180,
-      houseType: '4室2厅',
-      location: '北京市海淀区中关村大街',
-      description: '豪华装修，配套设施齐全，高端社区',
-      publisherName: '李女士',
-      contactPhone: '13999999999',
-      publishTime: '2024-01-14 14:20:00',
-      images: ['house3.jpg', 'house4.jpg']
-    },
-    {
-      id: 3,
-      title: '市中心商圈住宅',
-      price: 800,
-      area: 95,
-      houseType: '2室1厅',
-      location: '北京市东城区王府井大街',
-      description: '交通便利，周边配套完善，商务区核心',
-      publisherName: '王先生',
-      contactPhone: '13777777777',
-      publishTime: '2024-01-13 15:00:00',
-      images: ['house5.jpg']
-    },
-    {
-      id: 4,
-      title: '学区房精品小三居',
-      price: 950,
-      area: 105,
-      houseType: '3室1厅',
-      location: '北京市海淀区清华大学附近',
-      description: '学区房，名校附近，投资首选',
-      publisherName: '陈女士',
-      contactPhone: '13666666666',
-      publishTime: '2024-01-12 11:20:00',
-      images: ['house6.jpg']
-    },
-    {
-      id: 5,
-      title: '现代简约两居室',
-      price: 580,
-      area: 88,
-      houseType: '2室1厅',
-      location: '北京市丰台区科技园区',
-      description: '现代简约装修，年轻人首选',
-      publisherName: '刘先生',
-      contactPhone: '13555555555',
-      publishTime: '2024-01-11 16:45:00',
-      images: []
-    }
-  ]
-  
-  originalHouseList.value = mockData
-  return mockData
-}
-
-// 搜索筛选函数
-const filterHouses = (data: House[]) => {
-  return data.filter(item => {
-    // 房源标题筛选
-    if (searchForm.title && searchForm.title.trim()) {
-      const searchTitle = searchForm.title.trim().toLowerCase()
-      const itemTitle = item.title.toLowerCase()
-      if (!itemTitle.includes(searchTitle)) {
-        return false
-      }
-    }
-    
-    // 发布者筛选
-    if (searchForm.publisherName && searchForm.publisherName.trim()) {
-      const searchPublisher = searchForm.publisherName.trim().toLowerCase()
-      const itemPublisher = item.publisherName.toLowerCase()
-      if (!itemPublisher.includes(searchPublisher)) {
-        return false
-      }
-    }
-    
-    // 户型筛选
-    if (searchForm.houseType && searchForm.houseType.trim()) {
-      if (!item.houseType.includes(searchForm.houseType)) {
-        return false
-      }
-    }
-    
-    // 价格范围筛选
-    if (searchForm.priceRange && searchForm.priceRange.trim()) {
-      const { minPrice, maxPrice } = parsePriceRange(searchForm.priceRange)
-      
-      if (minPrice !== null && item.price < minPrice) {
-        return false
-      }
-      if (maxPrice !== null && item.price > maxPrice) {
-        return false
-      }
-    }
-    
-    return true
-  })
-}
-
-// 排序函数
-const sortHouses = (data: House[]) => {
-  if (!searchForm.sortBy) return data
-  
-  const sortedData = [...data]
-  
-  switch (searchForm.sortBy) {
-    case 'time-desc':
-      return sortedData.sort((a, b) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime())
-    case 'price-asc':
-      return sortedData.sort((a, b) => a.price - b.price)
-    case 'price-desc':
-      return sortedData.sort((a, b) => b.price - a.price)
-    case 'area-asc':
-      return sortedData.sort((a, b) => a.area - b.area)
-    case 'area-desc':
-      return sortedData.sort((a, b) => b.area - a.area)
-    default:
-      return sortedData
-  }
-}
-
-// 分页处理函数
-const updatePagination = (filteredData: House[]) => {
-  // 先排序
-  const sortedData = sortHouses(filteredData)
-  
-  // 计算分页
-  const startIndex = (pagination.page - 1) * pagination.size
-  const endIndex = startIndex + pagination.size
-  
-  // 更新显示数据和总数
-  displayHouseList.value = sortedData.slice(startIndex, endIndex)
-  pagination.total = sortedData.length
-}
-
-// 解析价格范围
-const parsePriceRange = (priceRange: string) => {
-  if (!priceRange) return { minPrice: null, maxPrice: null }
-  
-  const [min, max] = priceRange.split('-').map(p => parseInt(p))
-  
-  if (max >= 999999) {
-    return { minPrice: min, maxPrice: null }
-  }
-  
-  return { minPrice: min, maxPrice: max }
-}
-
-const loadHouseList = async () => {
+// API函数 - 获取房源列表
+const fetchHouseList = async () => {
   loading.value = true
   try {
-    // 如果原始数据为空，初始化模拟数据
-    if (originalHouseList.value.length === 0) {
-      initMockData()
+    // 构建查询参数
+    const params: Record<string, any> = {
+      current: pagination.page,
+      size: pagination.size,
+      ...searchForm
     }
     
-    // 执行搜索和分页
-    const allData = originalHouseList.value
-    const filteredData = filterHouses(allData)
-    updatePagination(filteredData)
+    // 移除值为空的参数
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === 0 || params[key] === null) {
+        delete params[key]
+      }
+    })
     
+    const response = await axios.get<HouseResponse>('/api/houses/page', { params })
+    
+    // 从响应中获取数据
+    const { data } = response
+    if (data.code === 'SUCCESS') {
+      // 更新列表和分页信息
+      displayHouseList.value = data.data.records
+      pagination.total = data.data.total
+      pagination.page = data.data.current
+      pagination.size = data.data.size
+    } else {
+      ElMessage.error(data.message || '获取房源列表失败')
+    }
   } catch (error) {
-    ElMessage.error('加载房源列表失败')
+    console.error('获取房源列表失败:', error)
+    ElMessage.error('获取房源列表失败')
   } finally {
     loading.value = false
   }
 }
 
+// 添加房源API - 使用正确的接口地址
+const addHouse = async (house: Omit<House, 'id' | 'createdAt' | 'updatedAt'>) => {
+  try {
+    // 准备发送的数据，确保格式符合API要求
+    const houseDTO = {
+      title: house.title,
+      address: house.address,
+      price: house.price,
+      unitPrice: house.unitPrice,
+      area: house.area,
+      rooms: house.rooms,
+      floor: house.floor,
+      buildYear: house.buildYear || 2000, // 提供默认值避免null
+      orientation: house.orientation,
+      decoration: house.decoration,
+      image: house.image,
+      tag: house.tag // API期望数组格式
+    }
+    
+    // 使用正确的API路径
+    const response = await axios.post('/api/houses/add', houseDTO)
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('添加房源成功')
+      return true
+    } else {
+      ElMessage.error(response.data?.message || '添加房源失败')
+      return false
+    }
+  } catch (error) {
+    console.error('添加房源失败:', error)
+    ElMessage.error('添加房源失败')
+    return false
+  }
+}
+
+// 更新房源API - 使用正确的接口地址和参数
+const updateHouse = async (house: House) => {
+  try {
+    // 准备发送的数据，确保格式符合API要求
+    const houseDTO = {
+      title: house.title,
+      address: house.address,
+      price: house.price,
+      unitPrice: house.unitPrice,
+      area: house.area,
+      rooms: house.rooms,
+      floor: house.floor,
+      buildYear: house.buildYear || 2000, // 提供默认值避免null
+      orientation: house.orientation,
+      decoration: house.decoration,
+      image: house.image,
+      tag: house.tag // API期望数组格式
+    }
+    
+    // 使用正确的API路径，id作为query参数
+    const response = await axios.put('/api/houses/update', houseDTO, {
+      params: { id: house.id }
+    })
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('更新房源成功')
+      return true
+    } else {
+      ElMessage.error(response.data?.message || '更新房源失败')
+      return false
+    }
+  } catch (error) {
+    console.error('更新房源失败:', error)
+    ElMessage.error('更新房源失败')
+    return false
+  }
+}
+
+// 删除房源API - 使用正确的接口地址
+const deleteHouse = async (id: number) => {
+  try {
+    const response = await axios.delete('/api/houses/remove-house', {
+      params: { id }
+    })
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('删除房源成功')
+      return true
+    } else {
+      ElMessage.error(response.data?.message || '删除房源失败')
+      return false
+    }
+  } catch (error) {
+    console.error('删除房源失败:', error)
+    ElMessage.error('删除房源失败')
+    return false
+  }
+}
+
+// 格式化价格
+const formatPrice = (price: number) => {
+  if (!price) return '0'
+  return price.toString()
+}
+
+// 搜索操作
+const handleSearch = async () => {
+  pagination.page = 1
+  await fetchHouseList()
+}
+
+// 重置筛选条件
+const handleReset = () => {
+  // 重置搜索表单
+  Object.assign(searchForm, {
+    title: '',
+    address: '',
+    minPrice: 0,
+    maxPrice: 0,
+    minArea: 0,
+    maxArea: 0,
+    rooms: '',
+    decoration: '',
+    orientation: '',
+    minYear: 0,
+    maxYear: 2025, // 保持最晚年份默认为2025
+    sortBy: 'createdAt-desc'
+  })
+  
+  // 重置分页并重新获取数据
+  pagination.page = 1
+  fetchHouseList()
+  
+  ElMessage.info('搜索条件已重置')
+}
+
+// 分页操作
+const handleSizeChange = (size: number) => {
+  pagination.size = size
+  pagination.page = 1
+  fetchHouseList()
+}
+
+const handleCurrentChange = (page: number) => {
+  pagination.page = page
+  fetchHouseList()
+}
+
+// 新增房源
 const handleAdd = () => {
   isEdit.value = false
-  dialogVisible.value = true
+  // 先重置表单，再显示对话框，确保表单内容已完全清空
   resetForm()
-}
-
-const handleEdit = (row: House) => {
-  isEdit.value = true
   dialogVisible.value = true
-  Object.assign(houseForm, row)
 }
 
+// 查看房源详情
 const handleView = (row: House) => {
   currentHouse.value = row
   detailDialogVisible.value = true
 }
 
-// 修改删除函数，支持从编辑对话框中删除
+// 删除房源
 const handleDelete = async (row: House) => {
   try {
     await ElMessageBox.confirm(
@@ -685,124 +928,109 @@ const handleDelete = async (row: House) => {
       }
     )
     
-    const index = originalHouseList.value.findIndex(h => h.id === row.id)
-    if (index > -1) {
-      originalHouseList.value.splice(index, 1)
-      ElMessage.success('删除成功')
-      
+    const success = await deleteHouse(row.id)
+    if (success) {
       // 如果是在编辑对话框中删除，关闭对话框
       if (dialogVisible.value) {
         dialogVisible.value = false
       }
       
-      await loadHouseList()
+      // 刷新列表
+      fetchHouseList()
     }
   } catch {
     ElMessage.info('已取消删除')
   }
 }
 
+// 提交表单 - 添加加载状态
 const handleSubmit = async () => {
   if (!formRef.value) return
   
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        if (isEdit.value) {
-          // 更新现有房源
-          const index = originalHouseList.value.findIndex(h => h.id === houseForm.id)
-          if (index > -1) {
-            originalHouseList.value[index] = {
-              ...originalHouseList.value[index],
-              ...houseForm,
-              publishTime: originalHouseList.value[index].publishTime // 保持原发布时间
-            }
-          }
-          ElMessage.success('更新成功')
-        } else {
-          // 新增房源
-          const newHouse: House = {
-            ...houseForm,
-            id: Date.now(), // 简单的ID生成
-            publishTime: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            images: []
-          }
-          originalHouseList.value.unshift(newHouse)
-          ElMessage.success('新增成功')
+        // 开始加载状态
+        submitLoading.value = true
+        
+        // 如果单价为0，则自动计算
+        if (houseForm.unitPrice === 0 && houseForm.price > 0 && houseForm.area > 0) {
+          houseForm.unitPrice = Math.round((houseForm.price * 10000) / houseForm.area)
         }
         
-        dialogVisible.value = false
-        await loadHouseList()
+        let success = false
+        if (isEdit.value) {
+          // 更新房源
+          success = await updateHouse(houseForm)
+        } else {
+          // 新增房源
+          success = await addHouse(houseForm)
+        }
+        
+        if (success) {
+          dialogVisible.value = false
+          fetchHouseList() // 刷新列表
+        }
       } catch (error) {
+        console.error('操作失败:', error)
         ElMessage.error('操作失败')
+      } finally {
+        // 无论成功失败，结束加载状态
+        submitLoading.value = false
       }
     }
   })
 }
 
-const formatPrice = (price: number) => {
-  if (!price) return '0'
-  return price.toString()
-}
-
-const calculateUnitPrice = (price: number, area: number) => {
-  if (!price || !area) return '0'
-  return Math.round((price * 10000) / area).toLocaleString()
-}
-
-const handleSearch = async () => {
-  pagination.page = 1
-  await loadHouseList()
-  
-  const filteredCount = displayHouseList.value.length
-  if (filteredCount === 0) {
-    ElMessage.info('未找到符合条件的房源')
-  } else {
-    ElMessage.success(`找到 ${pagination.total} 条符合条件的房源`)
-  }
-}
-
-const handleReset = () => {
-  Object.assign(searchForm, {
-    title: '',
-    priceRange: '',
-    houseType: '',
-    publisherName: '',
-    sortBy: 'time-desc'
-  })
-  pagination.page = 1
-  loadHouseList()
-  ElMessage.info('搜索条件已重置')
-}
-
-const handleSizeChange = (size: number) => {
-  pagination.size = size
-  pagination.page = 1
-  loadHouseList()
-}
-
-const handleCurrentChange = (page: number) => {
-  pagination.page = page
-  loadHouseList()
-}
-
+// 重置表单 - 确保彻底重置
 const resetForm = () => {
-  Object.assign(houseForm, {
-    id: 0,
-    title: '',
-    price: 0,
-    area: 0,
-    houseType: '',
-    location: '',
-    description: '',
-    publisherName: '',
-    contactPhone: ''
+  // 使用显式赋值确保每个字段都被重置
+  houseForm.id = 0
+  houseForm.title = ''
+  houseForm.address = ''
+  houseForm.price = 0
+  houseForm.unitPrice = 0
+  houseForm.area = 0
+  houseForm.rooms = ''
+  houseForm.floor = ''
+  houseForm.buildYear = undefined
+  houseForm.orientation = ''
+  houseForm.decoration = ''
+  houseForm.image = ''
+  houseForm.tag = []
+  houseForm.userId = 0
+  houseForm.createdAt = ''
+  houseForm.updatedAt = ''
+  
+  // 使用 nextTick 确保视图更新后再重置表单验证状态
+  nextTick(() => {
+    formRef.value?.resetFields()
   })
-  formRef.value?.resetFields()
 }
 
+// 在handleEdit函数中可能需要做特殊处理
+const handleEdit = (row: House) => {
+  isEdit.value = true
+  
+  // 完整复制行数据，包括createdAt和updatedAt
+  const houseData = {...row}
+  
+  // 如果buildYear是null，将其设为undefined以避免表单显示0
+  if (houseData.buildYear === null) {
+    houseData.buildYear = undefined
+  }
+  
+  // 重置表单并设置数据
+  resetForm()
+  nextTick(() => {
+    Object.assign(houseForm, houseData)
+    dialogVisible.value = true
+  })
+}
+
+// 组件挂载时加载数据
 onMounted(() => {
-  loadHouseList()
+  fetchHouseList()
 })
 </script>
 
@@ -989,7 +1217,7 @@ onMounted(() => {
   flex-direction: column;
 }
 
-/* 🔧 优化表格布局，避免右侧空白和按钮被遮挡 */
+/* 优化表格布局，避免右侧空白和按钮被遮挡 */
 .table-card :deep(.el-table) {
   flex: 1;
   overflow: auto;
@@ -1006,7 +1234,7 @@ onMounted(() => {
   width: 100% !important;
 }
 
-/* 🔧 强制表格使用固定布局 */
+/* 强制表格使用固定布局 */
 :deep(.el-table) {
   table-layout: fixed !important;
 }
@@ -1024,7 +1252,7 @@ onMounted(() => {
   padding: 16px 0;
 }
 
-/* 🔧 优化操作按钮布局 */
+/* 优化操作按钮布局 */
 .action-buttons {
   display: flex;
   gap: 6px;
@@ -1048,7 +1276,7 @@ onMounted(() => {
   min-width: auto;
 }
 
-/* 🔧 优化编辑对话框样式 - 完美对齐 */
+/* 优化编辑对话框样式 - 完美对齐 */
 .house-form-dialog :deep(.el-dialog) {
   border-radius: 12px;
   max-height: 85vh;
@@ -1060,7 +1288,7 @@ onMounted(() => {
   padding: 24px;
 }
 
-/* 🔧 表单样式 - 统一标签宽度和对齐 */
+/* 表单样式 - 统一标签宽度和对齐 */
 .house-form {
   width: 100%;
 }
@@ -1093,7 +1321,7 @@ onMounted(() => {
   align-items: center;
 }
 
-/* 🔧 修复数字输入框样式 - 确保数字完整显示 */
+/* 修复数字输入框样式 - 确保数字完整显示 */
 .house-form :deep(.el-input),
 .house-form :deep(.el-select) {
   width: 100%;
@@ -1124,7 +1352,7 @@ onMounted(() => {
   flex: 1 !important;
 }
 
-/* 🔧 修复数字输入框后缀样式 */
+/* 修复数字输入框后缀样式 */
 .house-form :deep(.el-input-number .el-input-group__append) {
   background-color: #f5f7fa;
   border-left: 1px solid #dcdfe6;
@@ -1174,7 +1402,7 @@ onMounted(() => {
   padding-right: 30px;
 }
 
-/* 🔧 文本域样式 */
+/* 文本域样式 */
 .house-form :deep(.el-textarea) {
   width: 100%;
 }
@@ -1200,7 +1428,7 @@ onMounted(() => {
   outline: none;
 }
 
-/* 🔧 优化对话框底部 - 左右分布 */
+/* 优化对话框底部 - 左右分布 */
 .dialog-footer {
   display: flex;
   justify-content: space-between;
@@ -1346,7 +1574,7 @@ onMounted(() => {
   background: #a8a8a8;
 }
 
-/* 🔧 响应式设计 - 优化小屏幕体验 */
+/* 响应式设计 - 优化小屏幕体验 */
 @media (max-width: 1200px) {
   .action-buttons {
     flex-direction: column;
@@ -1425,7 +1653,41 @@ onMounted(() => {
     justify-content: center;
   }
 }
+
+/* 新增样式 */
+.house-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.house-tag {
+  margin: 0;
+}
+
+.range-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.range-separator {
+  font-size: 14px;
+  color: #909399;
+  padding: 0 4px;
+}
+
+.range-unit {
+  font-size: 14px;
+  color: #909399;
+  margin-left: 4px;
+}
 </style>
-
-
-

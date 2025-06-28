@@ -36,7 +36,7 @@
             clearable
           >
             <el-option label="全部状态" value="" />
-            <el-option label="待审核" value="PENDING" />
+            <el-option label="待审核" value="RECEIVED" />
             <el-option label="已通过" value="APPROVED" />
             <el-option label="已拒绝" value="REJECTED" />
           </el-select>
@@ -90,7 +90,7 @@
           
           <el-table-column prop="title" label="房源标题" min-width="180" :show-overflow-tooltip="true" />
           
-          <el-table-column prop="user_id" label="用户ID" width="80" />
+          <el-table-column prop="userId" label="用户ID" width="80" />
           
           <el-table-column prop="address" label="地址" min-width="150" :show-overflow-tooltip="true" />
           
@@ -114,13 +114,13 @@
             </template>
           </el-table-column>
           
-          <el-table-column prop="created_at" label="提交时间" width="120">
+          <el-table-column prop="createdAt" label="提交时间" width="120">
             <template #default="scope">
-              {{ formatDate(scope.row.created_at) }}
+              {{ formatDate(scope.row.createdAt) }}
             </template>
           </el-table-column>
           
-          <!-- 🔧 修改操作列 - 根据状态显示不同按钮 -->
+          <!-- 操作列 - 根据状态显示不同按钮 -->
           <el-table-column label="操作" width="220" fixed="right">
             <template #default="scope">
               <div class="action-buttons">
@@ -134,7 +134,7 @@
                 
                 <!-- 待审核状态显示审核操作 -->
                 <el-dropdown 
-                  v-if="scope.row.status === 'PENDING'" 
+                  v-if="scope.row.status === 'RECEIVED'" 
                   :onCommand="getRowCommandHandler(scope.row)" 
                   trigger="click"
                 >
@@ -204,7 +204,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">用户ID</span>
-              <span class="info-value">{{ currentHouse.user_id }}</span>
+              <span class="info-value">{{ currentHouse.userId }}</span>
             </div>
             <div class="info-item full-width">
               <span class="info-label">房源标题</span>
@@ -224,7 +224,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">单价</span>
-              <span class="info-value">{{ currentHouse.unit_price }}元/㎡</span>
+              <span class="info-value">{{ currentHouse.unitPrice }}元/㎡</span>
             </div>
             <div class="info-item">
               <span class="info-label">户型</span>
@@ -236,7 +236,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">建造年份</span>
-              <span class="info-value">{{ currentHouse.build_year }}年</span>
+              <span class="info-value">{{ currentHouse.buildYear }}年</span>
             </div>
             <div class="info-item">
               <span class="info-label">朝向</span>
@@ -252,11 +252,11 @@
             </div>
             <div class="info-item">
               <span class="info-label">提交时间</span>
-              <span class="info-value">{{ formatDateTime(currentHouse.created_at) }}</span>
+              <span class="info-value">{{ formatDateTime(currentHouse.createdAt) }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">更新时间</span>
-              <span class="info-value">{{ formatDateTime(currentHouse.updated_at) }}</span>
+              <span class="info-value">{{ formatDateTime(currentHouse.updatedAt) }}</span>
             </div>
             <div class="info-item full-width" v-if="currentHouse.reason">
               <span class="info-label">拒绝原因</span>
@@ -301,7 +301,7 @@
       </div>
     </el-dialog>
 
-    <!-- 🔧 修改审核对话框 - 减少高度 -->
+    <!-- 审核对话框 -->
     <el-dialog 
       v-model="auditDialogVisible" 
       :title="auditDialogTitle" 
@@ -319,7 +319,6 @@
           label="拒绝原因" 
           :rules="[{ required: true, message: '请输入拒绝原因', trigger: 'blur' }]"
         >
-          <!-- 🔧 减少文本域行数 -->
           <el-input 
             v-model="auditForm.reason" 
             type="textarea" 
@@ -359,29 +358,45 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-// 🔧 添加Delete图标
 import { ArrowDown, Check, Close, Delete, Search, RefreshRight } from '@element-plus/icons-vue'
+import axios from 'axios'
 
-// 🔧 修改接口定义 - 移除DISABLED状态
-interface SellHouse {
+// 定义响应数据类型
+interface HouseRecordResponse {
+  code: string
+  message: string
+  data: HouseRecord[]
+  timestamp: number
+}
+
+// 定义审核结果响应类型
+interface AuditResponse {
+  code: string
+  message: string
+  data: any
+  timestamp: number
+}
+
+// 定义房源记录接口
+interface HouseRecord {
   id: number
-  user_id: number
+  userId: number
   title: string
   address: string
   price: number
   area: number
-  unit_price: number
+  unitPrice: number
   rooms: string
   floor: string
-  build_year: number
+  buildYear: number
   orientation: string
   decoration: string
   tag: string
   image: string
-  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'RECEIVED'
   reason?: string
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 const loading = ref(false)
@@ -396,11 +411,28 @@ const rejectedCount = ref(0)
 // 时间格式化函数
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
-  return dateStr.split(' ')[0]
+  try {
+    return dateStr.split('T')[0]
+  } catch {
+    return dateStr
+  }
 }
 
 const formatDateTime = (dateStr: string) => {
-  return dateStr || ''
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  } catch {
+    return dateStr
+  }
 }
 
 // 搜索表单
@@ -412,18 +444,18 @@ const searchForm = reactive({
   sortBy: 'time-desc'
 })
 
-// 🔧 修改审核表单 - 只保留approve和reject
+// 审核表单
 const auditForm = reactive({
   action: 'approve' as 'approve' | 'reject',
   reason: ''
 })
 
-const currentHouse = ref<SellHouse>({} as SellHouse)
-const currentAuditHouse = ref<SellHouse>({} as SellHouse)
+const currentHouse = ref<HouseRecord>({} as HouseRecord)
+const currentAuditHouse = ref<HouseRecord>({} as HouseRecord)
 
 // 数据管理 - 分离原始数据和显示数据
-const originalSellHouseList = ref<SellHouse[]>([])  // 原始完整数据
-const displaySellHouseList = ref<SellHouse[]>([])   // 当前显示的数据
+const originalSellHouseList = ref<HouseRecord[]>([])  // 原始完整数据
+const displaySellHouseList = ref<HouseRecord[]>([])   // 当前显示的数据
 
 const pagination = reactive({
   page: 1,
@@ -431,7 +463,7 @@ const pagination = reactive({
   total: 0
 })
 
-// 🔧 修改审核对话框标题
+// 审核对话框标题
 const auditDialogTitle = computed(() => {
   switch (auditForm.action) {
     case 'approve': return '审核通过'
@@ -440,113 +472,8 @@ const auditDialogTitle = computed(() => {
   }
 })
 
-// 🔧 修改模拟数据 - 移除DISABLED状态
-const initMockData = () => {
-  const mockData: SellHouse[] = [
-    {
-      id: 1,
-      user_id: 1001,
-      title: '阳光花园精装三居室',
-      address: '北京市朝阳区望京街道阳光花园小区',
-      price: 650,
-      area: 120,
-      unit_price: 54167,
-      rooms: '三室两厅',
-      floor: '中层/共18层',
-      build_year: 2015,
-      orientation: '南北',
-      decoration: '精装修',
-      tag: '学区房,近地铁,南北通透',
-      image: '["https://example.com/img1.jpg","https://example.com/img2.jpg"]',
-      status: 'PENDING',
-      created_at: '2024-01-15 10:30:00',
-      updated_at: '2024-01-15 10:30:00'
-    },
-    {
-      id: 2,
-      user_id: 1002,
-      title: '中央公园豪华四居室',
-      address: '北京市海淀区中关村大街中央公园',
-      price: 1200,
-      area: 180,
-      unit_price: 66667,
-      rooms: '四室两厅',
-      floor: '高层/共25层',
-      build_year: 2018,
-      orientation: '南',
-      decoration: '豪华装修',
-      tag: '景观房,高端社区,配套齐全',
-      image: '["https://example.com/img3.jpg"]',
-      status: 'APPROVED',
-      created_at: '2024-01-14 14:20:00',
-      updated_at: '2024-01-14 16:45:00'
-    },
-    {
-      id: 3,
-      user_id: 1003,
-      title: '老旧小区两居室',
-      address: '北京市西城区老胡同小区',
-      price: 300,
-      area: 80,
-      unit_price: 37500,
-      rooms: '两室一厅',
-      floor: '低层/共6层',
-      build_year: 1990,
-      orientation: '东',
-      decoration: '简装修',
-      tag: '老房子,需要翻新',
-      image: '',
-      status: 'REJECTED',
-      reason: '房源信息不完整，缺少详细描述和图片',
-      created_at: '2024-01-13 09:15:00',
-      updated_at: '2024-01-13 11:30:00'
-    },
-    {
-      id: 4,
-      user_id: 1001,
-      title: '市中心商务公寓',
-      address: '北京市东城区王府井大街商务中心',
-      price: 800,
-      area: 95,
-      unit_price: 84211,
-      rooms: '两室一厅',
-      floor: '高层/共30层',
-      build_year: 2020,
-      orientation: '南',
-      decoration: '精装修',
-      tag: '商务区,交通便利,高档装修',
-      image: '["https://example.com/img4.jpg","https://example.com/img5.jpg"]',
-      status: 'PENDING',
-      created_at: '2024-01-12 16:45:00',
-      updated_at: '2024-01-12 16:45:00'
-    },
-    {
-      id: 5,
-      user_id: 1004,
-      title: '学区房精品小三居',
-      address: '北京市海淀区清华大学附近',
-      price: 950,
-      area: 105,
-      unit_price: 90476,
-      rooms: '三室一厅',
-      floor: '中层/共20层',
-      build_year: 2016,
-      orientation: '南北',
-      decoration: '精装修',
-      tag: '学区房,名校附近,投资首选',
-      image: '["https://example.com/img6.jpg"]',
-      status: 'APPROVED',
-      created_at: '2024-01-11 11:20:00',
-      updated_at: '2024-01-11 15:30:00'
-    }
-  ]
-  
-  originalSellHouseList.value = mockData
-  return mockData
-}
-
 // 搜索筛选函数
-const filterSellHouses = (data: SellHouse[]) => {
+const filterSellHouses = (data: HouseRecord[]) => {
   console.log('🔍 搜索条件:', searchForm)
   
   return data.filter(item => {
@@ -562,7 +489,7 @@ const filterSellHouses = (data: SellHouse[]) => {
     // 用户ID筛选
     if (searchForm.userId && searchForm.userId.trim()) {
       const searchUserId = searchForm.userId.trim()
-      const itemUserId = item.user_id.toString()
+      const itemUserId = item.userId.toString()
       if (!itemUserId.includes(searchUserId)) {
         return false
       }
@@ -592,14 +519,14 @@ const filterSellHouses = (data: SellHouse[]) => {
 }
 
 // 排序函数
-const sortSellHouses = (data: SellHouse[]) => {
+const sortSellHouses = (data: HouseRecord[]) => {
   if (!searchForm.sortBy) return data
   
   const sortedData = [...data]
   
   switch (searchForm.sortBy) {
     case 'time-desc':
-      return sortedData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      return sortedData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     case 'price-asc':
       return sortedData.sort((a, b) => a.price - b.price)
     case 'price-desc':
@@ -614,7 +541,7 @@ const sortSellHouses = (data: SellHouse[]) => {
 }
 
 // 分页处理函数
-const updatePagination = (filteredData: SellHouse[]) => {
+const updatePagination = (filteredData: HouseRecord[]) => {
   // 先排序
   const sortedData = sortSellHouses(filteredData)
   
@@ -634,9 +561,9 @@ const updatePagination = (filteredData: SellHouse[]) => {
   })
 }
 
-// 🔧 修改统计数据更新函数
-const updateStatistics = (data: SellHouse[]) => {
-  pendingCount.value = data.filter(item => item.status === 'PENDING').length
+// 统计数据更新函数
+const updateStatistics = (data: HouseRecord[]) => {
+  pendingCount.value = data.filter(item => item.status === 'RECEIVED').length
   approvedCount.value = data.filter(item => item.status === 'APPROVED').length
   rejectedCount.value = data.filter(item => item.status === 'REJECTED').length
 }
@@ -670,8 +597,8 @@ const parseHouseImages = (imageStr: string) => {
   }
 }
 
-// 🔧 修改命令处理 - 只处理approve和reject
-const handleCommand = (command: string, row?: SellHouse) => {
+// 命令处理 - approve和reject
+const handleCommand = (command: string, row?: HouseRecord) => {
   if (!row) return
   
   switch (command) {
@@ -684,43 +611,47 @@ const handleCommand = (command: string, row?: SellHouse) => {
   }
 }
 
-const getRowCommandHandler = (row: SellHouse) => {
+const getRowCommandHandler = (row: HouseRecord) => {
   return (command: string) => {
     handleCommand(command, row)
   }
 }
 
-// 🔧 修改状态处理函数
+// 状态处理函数
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'PENDING': return '待审核'
+    // case 'RECEIVED': return '已接收'
+    case 'RECEIVED': return '待审核'
     case 'APPROVED': return '已通过'
     case 'REJECTED': return '已拒绝'
     default: return '未知'
   }
 }
 
-// 加载房源列表
+// 加载房源列表 - 使用真实API
 const loadSellHouseList = async () => {
   loading.value = true
   try {
-    // 如果原始数据为空，初始化模拟数据
-    if (originalSellHouseList.value.length === 0) {
-      initMockData()
+    // 调用真实API获取数据
+    const response = await axios.get<HouseRecordResponse>('/api/admin/review/house/received')
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      // 更新原始数据
+      originalSellHouseList.value = response.data.data
+      
+      // 执行搜索和分页
+      const filteredData = filterSellHouses(originalSellHouseList.value)
+      updatePagination(filteredData)
+      updateStatistics(originalSellHouseList.value)
+      
+      console.log('✅ 数据加载完成:', {
+        原始数据: originalSellHouseList.value.length,
+        过滤后数据: filteredData.length,
+        当前显示: displaySellHouseList.value.length
+      })
+    } else {
+      throw new Error(response.data?.message || '获取数据失败')
     }
-    
-    // 执行搜索和分页
-    const allData = originalSellHouseList.value
-    const filteredData = filterSellHouses(allData)
-    updatePagination(filteredData)
-    updateStatistics(allData)
-    
-    console.log('✅ 数据加载完成:', {
-      原始数据: allData.length,
-      过滤后数据: filteredData.length,
-      当前显示: displaySellHouseList.value.length
-    })
-    
   } catch (error) {
     console.error('❌ 加载失败:', error)
     ElMessage.error('加载房源列表失败')
@@ -729,21 +660,21 @@ const loadSellHouseList = async () => {
   }
 }
 
-const handleView = (row: SellHouse) => {
+const handleView = (row: HouseRecord) => {
   currentHouse.value = row
   detailDialogVisible.value = true
 }
 
-// 🔧 修改审核处理函数
-const handleAudit = (row: SellHouse, action: 'approve' | 'reject') => {
+// 审核处理函数
+const handleAudit = (row: HouseRecord, action: 'approve' | 'reject') => {
   currentAuditHouse.value = row
   auditForm.action = action
   auditForm.reason = ''
   auditDialogVisible.value = true
 }
 
-// 🔧 添加删除处理函数
-const handleDelete = async (row: SellHouse) => {
+// 删除处理函数 - 使用真实API
+const handleDelete = async (row: HouseRecord) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除房源"${row.title}"吗？此操作不可恢复！`,
@@ -755,22 +686,26 @@ const handleDelete = async (row: SellHouse) => {
       }
     )
     
-    // 从原始数据中删除
-    const index = originalSellHouseList.value.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      originalSellHouseList.value.splice(index, 1)
+    // 发送删除请求到后端
+    const response = await axios.delete(`/api/admin/review/house/${row.id}`)
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('删除成功')
+      // 重新加载数据
+      await loadSellHouseList()
+    } else {
+      throw new Error(response.data?.message || '删除失败')
     }
-    
-    ElMessage.success('删除成功')
-    
-    // 重新加载数据
-    await loadSellHouseList()
-    
-  } catch {
-    ElMessage.info('已取消删除')
+  } catch (error: any) {
+    if (error.toString().includes('cancel')) {
+      ElMessage.info('已取消删除')
+    } else {
+      console.error('❌ 删除失败:', error)
+      ElMessage.error(error.message || '删除失败')
+    }
   }
 }
-
+// 确认审核 - 修改为使用正确的API
 const confirmAudit = async () => {
   try {
     if (auditForm.action === 'reject' && !auditForm.reason.trim()) {
@@ -778,32 +713,35 @@ const confirmAudit = async () => {
       return
     }
     
-    // 模拟审核操作
-    const targetHouse = originalSellHouseList.value.find(item => item.id === currentAuditHouse.value.id)
-    if (targetHouse) {
-      switch (auditForm.action) {
-        case 'approve':
-          targetHouse.status = 'APPROVED'
-          break
-        case 'reject':
-          targetHouse.status = 'REJECTED'
-          targetHouse.reason = auditForm.reason
-          break
-      }
-      targetHouse.updated_at = new Date().toISOString().replace('T', ' ').substring(0, 19)
+    // 构建请求参数 - 适配后端API
+    const params = new URLSearchParams()
+    params.append('id', currentAuditHouse.value.id.toString())
+    params.append('pass', (auditForm.action === 'approve').toString())
+    
+    // 拒绝时必须有理由
+    if (auditForm.action === 'reject') {
+      params.append('reason', auditForm.reason)
+    } else if (auditForm.reason.trim()) {
+      // 通过且有备注时添加备注
+      params.append('reason', auditForm.reason)
     }
     
-    const actionText = auditForm.action === 'approve' ? '审核通过' : '审核拒绝'
+    // 发送审核结果到后端 - 使用正确的API地址
+    const response = await axios.post<AuditResponse>('/api/admin/review/house/approve', params)
     
-    ElMessage.success(`${actionText}成功`)
-    auditDialogVisible.value = false
-    
-    // 重新加载数据
-    await loadSellHouseList()
-    
-  } catch (error) {
+    if (response.data && response.data.code === 'SUCCESS') {
+      const actionText = auditForm.action === 'approve' ? '审核通过' : '审核拒绝'
+      ElMessage.success(`${actionText}成功`)
+      auditDialogVisible.value = false
+      
+      // 重新加载数据
+      await loadSellHouseList()
+    } else {
+      throw new Error(response.data?.message || '操作失败')
+    }
+  } catch (error: any) {
     console.error('❌ 审核操作失败:', error)
-    ElMessage.error('操作失败')
+    ElMessage.error(error.message || '操作失败')
   }
 }
 
@@ -811,13 +749,16 @@ const confirmAudit = async () => {
 const handleSearch = async () => {
   console.log('🔍 执行搜索...')
   pagination.page = 1  // 重置到第一页
-  await loadSellHouseList()
   
-  const filteredCount = displaySellHouseList.value.length
+  // 使用前端筛选
+  const filteredData = filterSellHouses(originalSellHouseList.value)
+  updatePagination(filteredData)
+  
+  const filteredCount = filteredData.length
   if (filteredCount === 0) {
     ElMessage.info('未找到符合条件的房源')
   } else {
-    ElMessage.success(`找到 ${pagination.total} 条符合条件的房源`)
+    ElMessage.success(`找到 ${filteredCount} 条符合条件的房源`)
   }
 }
 
@@ -831,19 +772,29 @@ const handleReset = () => {
     sortBy: 'time-desc'
   })
   pagination.page = 1
-  loadSellHouseList()
+  
+  // 使用前端筛选
+  const filteredData = filterSellHouses(originalSellHouseList.value)
+  updatePagination(filteredData)
+  
   ElMessage.info('搜索条件已重置')
 }
 
 const handleSizeChange = (size: number) => {
   pagination.size = size
   pagination.page = 1
-  loadSellHouseList()
+  
+  // 使用前端分页
+  const filteredData = filterSellHouses(originalSellHouseList.value)
+  updatePagination(filteredData)
 }
 
 const handleCurrentChange = (page: number) => {
   pagination.page = page
-  loadSellHouseList()
+  
+  // 使用前端分页
+  const filteredData = filterSellHouses(originalSellHouseList.value)
+  updatePagination(filteredData)
 }
 
 onMounted(() => {
@@ -1063,7 +1014,7 @@ onMounted(() => {
   min-width: 80px;
 }
 
-/* 🔧 优化审核对话框样式 */
+/* 优化审核对话框样式 */
 .audit-dialog :deep(.el-dialog) {
   border-radius: 12px;
   max-height: 70vh;
@@ -1075,7 +1026,7 @@ onMounted(() => {
   padding: 20px 24px;
 }
 
-/* 🔧 优化文本域样式 */
+/* 优化文本域样式 */
 :deep(.el-textarea .el-textarea__inner) {
   border-radius: 6px;
   border: 1px solid #dcdfe6;
@@ -1209,7 +1160,7 @@ onMounted(() => {
   border: 1px dashed #d9d9d9;
 }
 
-/* 🔧 优化对话框底部按钮区域 */
+/* 优化对话框底部按钮区域 */
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
@@ -1295,4 +1246,3 @@ onMounted(() => {
   }
 }
 </style>
-

@@ -19,6 +19,13 @@ export default defineConfig({
     port: 4000,        
     host: true,        
     open: true,        
-    strictPort: false  // 如果端口被占用，自动尝试下一个端口
-  }
+    
+    strictPort: false,  // 如果端口被占用，自动尝试下一个端口
+    proxy: {
+            '/api': {
+                target: 'http://localhost:8080',
+                changeOrigin: true
+            }
+        }
+  },
 })

@@ -1,5 +1,7 @@
 package com.coooolfan.easyhome.service.impl;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coooolfan.easyhome.mapper.AppointmentRecordMapper;
 import com.coooolfan.easyhome.mapper.HouseMapper;
 import com.coooolfan.easyhome.mapper.HouseUserRelationMapper;
@@ -10,10 +12,12 @@ import com.coooolfan.easyhome.service.AppointmentService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * @author lima
@@ -22,7 +26,9 @@ import java.time.LocalDate;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AppointmentServiceImpl implements AppointmentService {
+public class AppointmentServiceImpl
+        extends ServiceImpl<AppointmentRecordMapper, AppointmentRecord>
+        implements AppointmentService {
 
     @Resource
     private final AppointmentRecordMapper appointmentRecordMapper;
@@ -35,6 +41,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Resource
     private final SysUserMapper sysUserMapper;
+
 
     @Override
     public void handle(AppointmentDTO dto) {
@@ -94,6 +101,13 @@ public class AppointmentServiceImpl implements AppointmentService {
             return new ReviewResult(true, record.getUserId(), phone, houseName);
         }
         return new ReviewResult(false, record.getUserId(), null, houseName);
+    }
+
+    @Override
+    public List<AppointmentRecord> getAppointments() {
+        return this.lambdaQuery()
+                .orderByDesc(AppointmentRecord::getCreatedAt)
+                .list();
     }
 
 

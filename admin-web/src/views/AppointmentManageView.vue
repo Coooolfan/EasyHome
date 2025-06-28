@@ -3,7 +3,9 @@
     <div class="page-header">
       <h2>预约管理</h2>
       <el-button type="primary" @click="refreshList">
-        <el-icon><Refresh /></el-icon>刷新列表
+        <el-icon>
+          <Refresh />
+        </el-icon>刷新列表
       </el-button>
     </div>
 
@@ -17,11 +19,11 @@
           <el-input v-model="searchForm.houseId" placeholder="请输入房源ID" />
         </el-form-item>
         <el-form-item label="审核状态">
-          <el-select v-model="searchForm.approvalStatus" placeholder="请选择审核状态">
+          <el-select v-model="searchForm.approvalStatus" placeholder="请选择状态">
             <el-option label="全部" value="" />
-            <el-option label="已审核" value="APPROVED" />
-            <el-option label="未审核" value="PENDING" />
-            <el-option label="已拒绝" value="REJECTED" />
+            <el-option label="已确认" value="CONFIRMED" />
+            <el-option label="待处理" value="PENDING" />
+            <el-option label="已取消" value="CANCELLED" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -32,105 +34,74 @@
     </el-card>
 
     <!-- 预约列表 -->
-  <el-card>
-    <template #header>
-      <div class="card-header">
-        <span>预约记录列表</span>
-        <div class="header-actions">
-          <el-switch
-            v-model="showFullPhone"
-            :disabled="!canViewFullPhone"
-            inactive-text="脱敏显示"
-            active-text="完整显示"
-            @change="handlePhoneDisplayChange"
-          />
-        </div>
-      </div>
-    </template>
-
-    <!-- 🔧 审核状态和重复预约改为普通文字 -->
-    <el-table 
-      :data="reservationList" 
-      style="width: 100%" 
-      v-loading="loading" 
-      :row-style="{ height: '48px' }"
-      :show-overflow-tooltip="true"
-    >
-      <el-table-column prop="id" label="预约ID" width="80" align="center" />
-      <el-table-column prop="userId" label="用户ID" width="80" align="center" />
-      <el-table-column prop="houseId" label="房源ID" width="80" align="center" />
-      
-      <el-table-column 
-        prop="houseTitle" 
-        label="房源标题" 
-        max-width="200"
-        
-        :show-overflow-tooltip="true" 
-      />
-      
-      <!-- 🔧 审核状态 - 普通文字显示 -->
-      <el-table-column prop="approvalStatus" label="审核状态" width="100" align="center">
-        <template #default="scope">
-          {{ getStatusText(scope.row.approvalStatus) }}
-        </template>
-      </el-table-column>
-      
-      <el-table-column prop="submitTime" label="提交时间" width="110" align="center">
-        <template #default="scope">
-          {{ formatDate(scope.row.submitTime) }}
-        </template>
-      </el-table-column>
-      
-      <!-- 🔧 重复预约 - 普通文字显示 -->
-      <el-table-column prop="isDuplicate" label="重复预约" width="100" align="center">
-        <template #default="scope">
-          {{ scope.row.isDuplicate ? '重复' : '正常' }}
-        </template>
-      </el-table-column>
-      
-      <el-table-column label="联系电话" width="150">
-        <template #default="scope">
-          <div class="phone-display">
-            <span>{{ getDisplayPhone(scope.row.phone) }}</span>
-            <el-button 
-              v-if="!showFullPhone && canViewFullPhone"
-              type="text" 
-              size="small"
-              @click="showFullPhoneTemp(scope.row)"
-              class="phone-toggle"
-            >
-              <el-icon><View /></el-icon>
-            </el-button>
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>预约记录列表</span>
+          <div class="header-actions">
+            <el-switch v-model="showFullPhone" :disabled="!canViewFullPhone" inactive-text="脱敏显示" active-text="完整显示"
+              @change="handlePhoneDisplayChange" />
           </div>
-        </template>
-      </el-table-column>
-      
-      <el-table-column label="操作" width="100" align="center">
-        <template #default="scope">
-          <el-button 
-            size="small" 
-            type="primary"
-            @click="handleViewDetail(scope.row)"
-            :icon="View"
-          >
-            详情
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+        </div>
+      </template>
 
-    <!-- 分页保持不变 -->
-    <el-pagination
-      v-model:current-page="pagination.page"
-      v-model:page-size="pagination.size"
-      :page-sizes="[10, 20, 50, 100]"
-      :total="pagination.total"
-      layout="total, sizes, prev, pager, next, jumper"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      class="pagination"
-    />
-  </el-card>
+      <!-- 🔧 审核状态和重复预约改为普通文字 -->
+      <el-table :data="reservationList" style="width: 100%" v-loading="loading" :row-style="{ height: '48px' }"
+        :show-overflow-tooltip="true">
+        <el-table-column prop="id" label="预约ID" width="80" align="center" />
+        <el-table-column prop="userId" label="用户ID" width="80" align="center" />
+        <el-table-column prop="houseId" label="房源ID" width="80" align="center" />
+
+        <el-table-column prop="houseTitle" label="房源标题" max-width="20" :show-overflow-tooltip="true" />
+
+        <!-- 🔧 审核状态 - 普通文字显示 -->
+        <el-table-column prop="approvalStatus" label="审核状态" width="100" align="center">
+          <template #default="scope">
+            {{ getStatusText(scope.row.approvalStatus) }}
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="submitTime" label="提交时间" width="110" align="center">
+          <template #default="scope">
+            {{ formatDate(scope.row.submitTime) }}
+          </template>
+        </el-table-column>
+
+        <!-- 🔧 重复预约 - 普通文字显示 -->
+        <el-table-column prop="isDuplicate" label="重复预约" width="100" align="center">
+          <template #default="scope">
+            {{ scope.row.isDuplicate ? '重复' : '正常' }}
+          </template>
+        </el-table-column>
+
+        <el-table-column label="联系电话" width="150">
+          <template #default="scope">
+            <div class="phone-display">
+              <span>{{ getDisplayPhone(scope.row.phone) }}</span>
+              <el-button v-if="!showFullPhone && canViewFullPhone" type="text" size="small"
+                @click="showFullPhoneTemp(scope.row)" class="phone-toggle">
+                <el-icon>
+                  <View />
+                </el-icon>
+              </el-button>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="100" align="center">
+          <template #default="scope">
+            <el-button size="small" type="primary" @click="handleViewDetail(scope.row)" :icon="View">
+              详情
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页保持不变 -->
+      <el-pagination v-model:current-page="pagination.page" v-model:page-size="pagination.size"
+        :page-sizes="[10, 20, 50, 100]" :total="pagination.total" layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange" @current-change="handleCurrentChange" class="pagination" />
+    </el-card>
 
     <!-- 预约详情对话框 -->
     <el-dialog v-model="detailDialogVisible" title="预约详情" width="1000px">
@@ -146,12 +117,7 @@
             <el-descriptions-item label="联系电话">
               <span class="phone-detail">
                 {{ canViewFullPhone ? currentReservation.phone : maskPhone(currentReservation.phone) }}
-                <el-button 
-                  v-if="!canViewFullPhone" 
-                  type="text" 
-                  size="small"
-                  @click="requestPhonePermission"
-                >
+                <el-button v-if="!canViewFullPhone" type="text" size="small" @click="requestPhonePermission">
                   申请查看完整号码
                 </el-button>
               </span>
@@ -159,8 +125,10 @@
             <el-descriptions-item label="审核状态">
               {{ getStatusText(currentReservation.approvalStatus) }}
             </el-descriptions-item>
-            <el-descriptions-item label="提交时间">{{ formatDateTime(currentReservation.submitTime) }}</el-descriptions-item>
-            <el-descriptions-item label="审核时间">{{ formatDateTime(currentReservation.approvalTime) || '未审核' }}</el-descriptions-item>
+            <el-descriptions-item label="提交时间">{{ formatDateTime(currentReservation.submitTime)
+            }}</el-descriptions-item>
+            <el-descriptions-item label="审核时间">{{ formatDateTime(currentReservation.approvalTime) || '未审核'
+            }}</el-descriptions-item>
             <el-descriptions-item label="重复预约检测">
               {{ currentReservation.isDuplicate ? '检测到重复预约' : '正常预约' }}
             </el-descriptions-item>
@@ -176,29 +144,21 @@
             <!-- 审核通过 -->
             <div class="approval-card">
               <div class="approval-header">
-                <el-icon class="approval-icon success"><CircleCheck /></el-icon>
+                <el-icon class="approval-icon success">
+                  <CircleCheck />
+                </el-icon>
                 <span class="approval-title">审核通过</span>
               </div>
               <div class="approval-content">
                 <div v-if="currentReservation.approvalStatus === 'PENDING'">
                   <p>确认该预约信息无误，通过审核申请</p>
                   <p>审核备注（可选）：</p>
-                  <el-input
-                    v-model="approveRemark"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请输入审核备注..."
-                    maxlength="200"
-                    show-word-limit
-                    style="margin-bottom: 12px;"
-                  />
-                  <el-button 
-                    type="success" 
-                    size="large"
-                    @click="handleApprove"
-                    style="width: 100%;"
-                  >
-                    <el-icon><CircleCheck /></el-icon>
+                  <el-input v-model="approveRemark" type="textarea" :rows="3" placeholder="请输入审核备注..." maxlength="200"
+                    show-word-limit style="margin-bottom: 12px;" />
+                  <el-button type="success" size="large" @click="handleApprove" style="width: 100%;">
+                    <el-icon>
+                      <CircleCheck />
+                    </el-icon>
                     确认通过
                   </el-button>
                 </div>
@@ -212,29 +172,21 @@
             <!-- 拒绝预约 -->
             <div class="approval-card">
               <div class="approval-header">
-                <el-icon class="approval-icon danger"><CircleClose /></el-icon>
+                <el-icon class="approval-icon danger">
+                  <CircleClose />
+                </el-icon>
                 <span class="approval-title">拒绝预约</span>
               </div>
               <div class="approval-content">
                 <div v-if="currentReservation.approvalStatus === 'PENDING'">
                   <p>请填写拒绝原因：</p>
-                  <el-input
-                    v-model="rejectReason"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请输入拒绝原因..."
-                    maxlength="200"
-                    show-word-limit
-                    style="margin-bottom: 12px;"
-                  />
-                  <el-button 
-                    type="danger" 
-                    size="large"
-                    @click="handleReject"
-                    style="width: 100%;"
-                    :disabled="!rejectReason.trim()"
-                  >
-                    <el-icon><CircleClose /></el-icon>
+                  <el-input v-model="rejectReason" type="textarea" :rows="3" placeholder="请输入拒绝原因..." maxlength="200"
+                    show-word-limit style="margin-bottom: 12px;" />
+                  <el-button type="danger" size="large" @click="handleReject" style="width: 100%;"
+                    :disabled="!rejectReason.trim()">
+                    <el-icon>
+                      <CircleClose />
+                    </el-icon>
                     确认拒绝
                   </el-button>
                 </div>
@@ -247,7 +199,7 @@
           </div>
         </div>
       </div>
-      
+
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="detailDialogVisible = false" size="large">关闭</el-button>
@@ -261,9 +213,11 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { 
+import {
   Refresh, View, CircleCheck, CircleClose
 } from '@element-plus/icons-vue'
+import axios from 'axios'
+
 
 interface Reservation {
   id: number
@@ -277,6 +231,19 @@ interface Reservation {
   approvalTime?: string
   isDuplicate: boolean
   remark?: string
+}
+interface ApiAppointmentRecord {
+  id: number
+  houseId: number
+  name: string
+  phone: string
+  time: string
+  date: string
+  remarks: string
+  status: string
+  userId: number
+  createdAt: string
+  updatedAt: string
 }
 
 const userStore = useUserStore()
@@ -320,12 +287,11 @@ const formatDateTime = (dateStr: string | undefined) => {
   return dateStr || ''
 }
 
-// 获取审核状态文本
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'APPROVED': return '已审核'
-    case 'REJECTED': return '已拒绝'
-    case 'PENDING': return '待审核'
+    case 'CONFIRMED': return '已确认'
+    case 'CANCELLED': return '已取消'
+    case 'PENDING': return '待处理'
     default: return '未知状态'
   }
 }
@@ -374,7 +340,7 @@ const requestPhonePermission = () => {
 const filterReservations = (data: Reservation[]) => {
   console.log('搜索条件:', searchForm)
   console.log('原始数据:', data)
-  
+
   return data.filter(item => {
     // 用户ID筛选 - 去除空格并转换为字符串
     if (searchForm.userId && searchForm.userId.trim()) {
@@ -385,7 +351,7 @@ const filterReservations = (data: Reservation[]) => {
         return false
       }
     }
-    
+
     // 房源ID筛选 - 去除空格并转换为字符串
     if (searchForm.houseId && searchForm.houseId.trim()) {
       const searchHouseId = searchForm.houseId.trim()
@@ -395,7 +361,7 @@ const filterReservations = (data: Reservation[]) => {
         return false
       }
     }
-    
+
     // 审核状态筛选
     if (searchForm.approvalStatus && searchForm.approvalStatus.trim()) {
       console.log('状态比较:', searchForm.approvalStatus, 'vs', item.approvalStatus)
@@ -403,7 +369,7 @@ const filterReservations = (data: Reservation[]) => {
         return false
       }
     }
-    
+
     return true
   })
 }
@@ -417,102 +383,71 @@ const updatePagination = (filteredData: Reservation[]) => {
   reservationList.value = filteredData.slice(startIndex, endIndex)
 }
 
-// 加载预约列表 - 支持搜索筛选
+// 修改加载预约列表函数 - 使用真实API并获取房源标题
 const loadReservationList = async (isSearch = false) => {
   loading.value = true
   try {
     // 如果不是搜索操作且原始数据为空，则加载数据
-    if (!isSearch && originalReservationList.value.length === 0) {
-      // 模拟数据 - 增加更多测试数据
-      const mockData: Reservation[] = [
-        {
-          id: 1,
-          userId: 101,
-          houseId: 2001,
-          houseTitle: '阳光海景公寓 2室1厅',
-          userName: '张三',
-          phone: '13812345678',
-          approvalStatus: 'PENDING',
-          submitTime: '2024-01-15 10:30:00',
-          isDuplicate: false,
-          remark: '希望尽快看房'
-        },
-        {
-          id: 2,
-          userId: 102,
-          houseId: 2002,
-          houseTitle: '市中心精装修公寓',
-          userName: '李四',
-          phone: '13998765432',
-          approvalStatus: 'APPROVED',
-          submitTime: '2024-01-14 15:20:00',
-          approvalTime: '2024-01-14 16:00:00',
-          isDuplicate: false
-        },
-        {
-          id: 3,
-          userId: 103,
-          houseId: 2001,
-          houseTitle: '阳光海景公寓 2室1厅',
-          userName: '王五',
-          phone: '13756789012',
-          approvalStatus: 'REJECTED',
-          submitTime: '2024-01-13 09:15:00',
-          approvalTime: '2024-01-13 10:30:00',
-          isDuplicate: true,
-          remark: '第二次预约同一房源'
-        },
-        {
-          id: 4,
-          userId: 104,
-          houseId: 2003,
-          houseTitle: '温馨三居室',
-          userName: '赵六',
-          phone: '13645678901',
-          approvalStatus: 'PENDING',
-          submitTime: '2024-01-12 14:45:00',
-          isDuplicate: false,
-          remark: '周末可以看房'
-        },
-        {
-          id: 5,
-          userId: 105,
-          houseId: 2004,
-          houseTitle: '豪华复式公寓',
-          userName: '钱七',
-          phone: '13534567890',
-          approvalStatus: 'APPROVED',
-          submitTime: '2024-01-11 11:20:00',
-          approvalTime: '2024-01-11 12:00:00',
-          isDuplicate: false
-        },
-        {
-          id: 6,
-          userId: 101,
-          houseId: 2005,
-          houseTitle: '学区房精装',
-          userName: '张三',
-          phone: '13812345678',
-          approvalStatus: 'REJECTED',
-          submitTime: '2024-01-10 16:30:00',
-          approvalTime: '2024-01-10 17:15:00',
-          isDuplicate: false,
-          remark: '价格超出预算'
-        }
-      ]
-      
-      originalReservationList.value = mockData
+    if (!isSearch || originalReservationList.value.length === 0) {
+      // 调用真实API获取数据
+      const response = await axios.get<{
+        code: string
+        message: string
+        data: ApiAppointmentRecord[]
+        timestamp: number
+      }>('/api/appointment/list')
+
+      if (response.data && response.data.code === 'SUCCESS') {
+        // 将后端数据转换为前端使用的格式
+        const appointments = await Promise.all(response.data.data.map(async (item: ApiAppointmentRecord) => {
+          // 构造提交时间字符串 (日期 + 时间)
+          const submitTime = `${item.date} ${item.time}`;
+
+          // 获取房源标题
+          let houseTitle = '未知房源';
+          try {
+            const houseResponse = await axios.get(`/api/houses/getById/${item.houseId}`);
+            if (houseResponse.data && houseResponse.data.code === 'SUCCESS' && houseResponse.data.data) {
+              houseTitle = houseResponse.data.data.title || `房源${item.houseId}`;
+            }
+          } catch (error) {
+            console.error(`获取房源(ID: ${item.houseId})标题失败:`, error);
+          }
+
+          return {
+            id: item.id,
+            userId: item.userId,
+            houseId: item.houseId,
+            houseTitle: houseTitle, // 使用API获取的房源标题
+            userName: item.name || '未知用户',
+            phone: item.phone || '',
+            approvalStatus: item.status === 'CONFIRMED' ? 'CONFIRMED' :
+              item.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
+            submitTime: item.createdAt || submitTime,
+            approvalTime: item.updatedAt !== item.createdAt ? item.updatedAt : undefined,
+            isDuplicate: false, // 数据中没有重复标记，可能需要后端提供
+            remark: item.remarks || ''
+          } as Reservation
+        }))
+
+        // 更新原始数据
+        originalReservationList.value = appointments
+
+        console.log('✅ 成功加载预约列表:', appointments.length)
+      } else {
+        throw new Error(response.data?.message || '获取预约列表失败')
+      }
     }
-    
+
     // 根据搜索条件筛选数据
     const filteredData = filterReservations(originalReservationList.value)
-    
+
     // 更新分页和显示数据
     updatePagination(filteredData)
-    
+
   } catch (error) {
+    console.error('❌ 加载预约列表失败:', error)
     ElMessage.error('加载预约列表失败')
-    console.error('Load reservation list error:', error)
   } finally {
     loading.value = false
   }
@@ -526,46 +461,55 @@ const getStatusTagType = (status: string) => {
     default: return 'info'
   }
 }
-// 审核通过 - 包含备注信息
+
+// 审核通过 - 包含备注信息 - 修改为使用真实API
 const handleApprove = async () => {
   try {
     let confirmMessage = '确定要审核通过这个预约吗？'
     if (approveRemark.value.trim()) {
       confirmMessage += `\n\n审核备注：${approveRemark.value.trim()}`
     }
-    
+
     await ElMessageBox.confirm(confirmMessage, '确认审核', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
+
+    // 构建请求参数
+    const params = new URLSearchParams()
+    params.append('id', currentReservation.value.id.toString())
+    params.append('pass', 'true')
     
-    // 更新原始数据中的状态
-    const reservation = originalReservationList.value.find(item => item.id === currentReservation.value.id)
-    if (reservation) {
-      reservation.approvalStatus = 'APPROVED'
-      reservation.approvalTime = new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }).replace(/\//g, '-')
+    // 添加备注（如果有）
+    if (approveRemark.value.trim()) {
+      params.append('reason', approveRemark.value.trim())
     }
     
-    // 调用审核API，包含备注信息
-    console.log('审核通过备注:', approveRemark.value.trim())
-    ElMessage.success('审核通过成功')
-    detailDialogVisible.value = false
-    approveRemark.value = '' // 清空备注
-    loadReservationList(true) // 重新加载当前筛选结果
-  } catch {
-    // 用户取消
+    // 调用审核API
+    const response = await axios.post('/api/admin/review/appointment/approve', params)
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('审核通过成功')
+      detailDialogVisible.value = false
+      approveRemark.value = '' // 清空备注
+      
+      // 刷新列表
+      refreshList()
+    } else {
+      throw new Error(response.data?.message || '操作失败')
+    }
+  } catch (error: any) {
+    if (error.toString().includes('cancel')) {
+      // 用户取消操作
+      return
+    }
+    console.error('❌ 审核操作失败:', error)
+    ElMessage.error(error.message || '操作失败')
   }
 }
 
-// 拒绝预约
+// 拒绝预约 - 修改为使用真实API
 const handleReject = async () => {
   if (!rejectReason.value.trim()) {
     ElMessage.warning('请输入拒绝原因')
@@ -582,28 +526,32 @@ const handleReject = async () => {
       type: 'warning'
     })
     
-    // 更新原始数据中的状态
-    const reservation = originalReservationList.value.find(item => item.id === currentReservation.value.id)
-    if (reservation) {
-      reservation.approvalStatus = 'REJECTED'
-      reservation.approvalTime = new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }).replace(/\//g, '-')
-    }
+    // 构造请求参数
+    const params = new URLSearchParams()
+    params.append('id', currentReservation.value.id.toString())
+    params.append('pass', 'false')
+    params.append('reason', rejectReason.value.trim())
     
-    // 调用拒绝API
-    console.log('拒绝原因:', rejectReason.value.trim())
-    ElMessage.success('拒绝预约成功')
-    detailDialogVisible.value = false
-    rejectReason.value = '' // 清空原因
-    loadReservationList(true) // 重新加载当前筛选结果
-  } catch {
-    // 用户取消
+    // 调用拒绝API - 使用相同的接口但参数不同
+    const response = await axios.post('/api/admin/review/appointment/approve', params)
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('拒绝预约成功')
+      detailDialogVisible.value = false
+      rejectReason.value = '' // 清空原因
+      
+      // 刷新列表
+      refreshList()
+    } else {
+      throw new Error(response.data?.message || '操作失败')
+    }
+  } catch (error: any) {
+    if (error.toString().includes('cancel')) {
+      // 用户取消操作
+      return
+    }
+    console.error('❌ 拒绝操作失败:', error)
+    ElMessage.error(error.message || '操作失败')
   }
 }
 
@@ -618,30 +566,30 @@ const handleViewDetail = (row: Reservation) => {
 // 搜索功能 - 实现真正的搜索筛选
 const handleSearch = () => {
   console.log('开始搜索，搜索条件:', searchForm)
-  
+
   // 验证搜索条件 - 修改验证逻辑
   const hasUserId = searchForm.userId && searchForm.userId.trim()
   const hasHouseId = searchForm.houseId && searchForm.houseId.trim()
   const hasStatus = searchForm.approvalStatus && searchForm.approvalStatus.trim()
-  
+
   const hasSearchCondition = hasUserId || hasHouseId || hasStatus
-  
+
   if (!hasSearchCondition) {
     ElMessage.warning('请输入至少一个搜索条件')
     return
   }
-  
+
   // 重置到第一页
   pagination.page = 1
-  
+
   // 执行搜索
   console.log('执行搜索，原始数据长度:', originalReservationList.value.length)
   const filteredData = filterReservations(originalReservationList.value)
   console.log('筛选后数据长度:', filteredData.length)
-  
+
   // 更新分页和显示数据
   updatePagination(filteredData)
-  
+
   // 搜索成功提示
   ElMessage.success(`搜索完成，找到 ${filteredData.length} 条记录`)
 }
@@ -654,13 +602,13 @@ const handleReset = () => {
     houseId: '',
     approvalStatus: ''
   })
-  
+
   // 重置分页
   pagination.page = 1
-  
+
   // 显示所有数据
   updatePagination(originalReservationList.value)
-  
+
   ElMessage.success('搜索条件已重置')
 }
 
@@ -668,17 +616,17 @@ const handleReset = () => {
 const refreshList = () => {
   // 清空原始数据，强制重新加载
   originalReservationList.value = []
-  
+
   // 重置搜索条件
   Object.assign(searchForm, {
     userId: '',
     houseId: '',
     approvalStatus: ''
   })
-  
+
   // 重置分页
   pagination.page = 1
-  
+
   loadReservationList(false)
   ElMessage.success('列表刷新成功')
 }
@@ -687,7 +635,7 @@ const refreshList = () => {
 const handleSizeChange = (size: number) => {
   pagination.size = size
   pagination.page = 1 // 重置到第一页
-  
+
   // 重新筛选和分页
   const filteredData = filterReservations(originalReservationList.value)
   updatePagination(filteredData)
@@ -695,7 +643,7 @@ const handleSizeChange = (size: number) => {
 
 const handleCurrentChange = (page: number) => {
   pagination.page = page
-  
+
   // 重新筛选和分页
   const filteredData = filterReservations(originalReservationList.value)
   updatePagination(filteredData)
@@ -791,7 +739,7 @@ onMounted(() => {
   border-radius: 6px;
   border: 1px solid #dcdfe6;
   transition: all 0.3s ease;
-  height: 32px; 
+  height: 32px;
 }
 
 :deep(.el-input .el-input__wrapper:hover),
@@ -909,7 +857,8 @@ onMounted(() => {
 
 /* 🔧 表格单元格样式 */
 :deep(.el-table .el-table__cell) {
-  padding: 8px 8px !important;  /* 减少左右内边距 */
+  padding: 8px 8px !important;
+  /* 减少左右内边距 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -930,7 +879,8 @@ onMounted(() => {
 
 .detail-left {
   flex: 1;
-  margin-top: 48px; /* 向下偏移，与右侧"审核操作"标题对齐 */
+  margin-top: 48px;
+  /* 向下偏移，与右侧"审核操作"标题对齐 */
 }
 
 .detail-right {
@@ -1028,10 +978,12 @@ onMounted(() => {
   flex-shrink: 0 !important;
   padding: 0 20px 20px 20px !important;
 }
+
 /* 🔧 确保表格自适应 */
 :deep(.el-table) {
   width: 100% !important;
-  table-layout: fixed !important;  /* 改为固定布局，确保列宽控制 */
+  table-layout: fixed !important;
+  /* 改为固定布局，确保列宽控制 */
 }
 
 /* 🔧 确保表格容器充分利用空间 */
@@ -1085,13 +1037,16 @@ onMounted(() => {
 .phone-toggle :deep(.el-icon) {
   font-size: 12px;
 }
+
 /* 🔧 减少行高 */
 :deep(.el-table .el-table__row) {
-  height: 48px !important; /* 从60px减少到48px */
+  height: 48px !important;
+  /* 从60px减少到48px */
 }
 
 :deep(.el-table .el-table__cell) {
-  padding: 8px 12px !important; /* 减少内边距 */
+  padding: 8px 12px !important;
+  /* 减少内边距 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1100,12 +1055,14 @@ onMounted(() => {
 
 /* 🔧 表格头部文字不换行 */
 :deep(.el-table .el-table__header .el-table__cell) {
-  padding: 10px 8px !important;  /* 减少左右内边距 */
+  padding: 10px 8px !important;
+  /* 减少左右内边距 */
   background-color: #fafafa;
   font-weight: 600;
   font-size: 13px;
   color: #303133;
-  white-space: nowrap !important;  /* 强制不换行 */
+  white-space: nowrap !important;
+  /* 强制不换行 */
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1151,31 +1108,31 @@ onMounted(() => {
     align-items: stretch;
     gap: 16px;
   }
-  
+
   :deep(.el-form--inline .el-form-item) {
     width: 100%;
   }
-  
+
   :deep(.el-form--inline .el-form-item:last-child) {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
   }
-  
+
   :deep(.el-select),
   :deep(.el-input) {
     width: 100% !important;
   }
-  
+
   :deep(.el-button) {
     width: 100%;
     justify-content: center;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .action-buttons .el-button {
     width: 100%;
     justify-content: center;
@@ -1186,11 +1143,12 @@ onMounted(() => {
   .detail-container {
     flex-direction: column;
   }
-  
+
   .detail-left {
-    margin-top: 0; /* 移动端取消上边距 */
+    margin-top: 0;
+    /* 移动端取消上边距 */
   }
-  
+
   .detail-right {
     flex: none;
     border-left: none;
@@ -1198,17 +1156,17 @@ onMounted(() => {
     padding-left: 0;
     padding-top: 30px;
   }
-  
+
   :deep(.el-overlay-dialog) {
     padding: 1vh 10px !important;
   }
-  
+
   :deep(.el-dialog) {
     width: calc(100vw - 20px) !important;
     max-width: none !important;
     max-height: 98vh !important;
   }
-  
+
   :deep(.el-dialog__body) {
     max-height: calc(98vh - 120px) !important;
   }

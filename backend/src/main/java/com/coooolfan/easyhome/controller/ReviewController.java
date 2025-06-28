@@ -34,11 +34,6 @@ public class ReviewController {
     @Resource
     private NotificationService notificationService;
 
-    @GetMapping("/house/pending")
-    public Result<List<HouseRecord>> getPending() {
-        return Result.ok(houseRecordService.getPendingRecords());
-    }
-
     @GetMapping("/house/received")
     public Result<List<HouseRecord>> getReceived(){
         return Result.ok(houseRecordService.getReceivedRecords());
@@ -48,20 +43,16 @@ public class ReviewController {
     public Result<String> approve(@RequestParam Long id,
                                   @RequestParam Boolean pass,
                                   @RequestParam(required = false) String reason) {
-        if(houseRecordService.review(id, pass, reason)){
-            if (pass) {
-                notificationService.send(
-                        houseRecordService.getUserIdByRecordId(id),
-                        "房屋审核通过",
-                        "您的房屋信息已通过审核"
-                );
-            } else {
-                notificationService.send(
-                        houseRecordService.getUserIdByRecordId(id),
-                        "房屋审核未通过",
-                        reason == null ? "您的房屋信息未通过审核" : reason
-                );
-            }
+        if(houseRecordService.review(id, pass, reason)) {
+            notificationService.send(
+                    houseRecordService.getUserIdByRecordId(id),
+                    "房屋审核通过",
+                    "您的房屋信息已通过审核");
+        }else {
+            notificationService.send(
+                houseRecordService.getUserIdByRecordId(id),
+                "房屋审核未通过",
+                reason == null ? "您的房屋信息未通过审核" : reason);
         }
         return Result.ok("处理完成");
     }

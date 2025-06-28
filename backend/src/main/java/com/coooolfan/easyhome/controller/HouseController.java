@@ -124,10 +124,19 @@ public class HouseController {
     }
 
     @DeleteMapping("/remove-house")
-    @Operation(summary = "删除房屋信息")
+    @Operation(summary = "删除房屋发布信息")
     public Result<String> deleteHouse(@RequestParam Long id) {
         log.info("删除房屋发布信息: {}", id);
         houseRecordService.removeWithVecByRecordId(id);
         return Result.ok(null);
     }
+
+    @DeleteMapping
+    @Operation(summary = "删除房屋信息")
+    public Result<String> deleteHouseById(@RequestParam Long id) {
+        log.info("删除房屋信息: {}", id);
+        houseService.removeWithVecById(id);
+        return Result.ok(null);
+    }
+
 }

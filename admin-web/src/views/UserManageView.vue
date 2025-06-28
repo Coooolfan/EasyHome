@@ -26,6 +26,13 @@
             @keyup.enter="handleSearch"
           />
         </el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="searchForm.role" placeholder="请选择角色" clearable>
+            <el-option label="全部" value="" />
+            <el-option label="普通用户" value="role_user" />
+            <el-option label="管理员" value="role_admin" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
             <el-option label="全部" value="" />
@@ -45,33 +52,37 @@
     </el-card>
 
     <!-- 用户列表 -->
-    <el-card>
+    <el-card class="table-card">
       <el-table 
-        :data="filteredUserList" 
+        :data="userList" 
         style="width: 100%" 
         v-loading="loading"
         :header-cell-style="{ background: '#f5f7fa', color: '#303133' }"
         stripe
       >
-        <!-- 🔧 给每列设置合适的宽度 -->
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="phone" label="手机号" width="130" />
         <el-table-column prop="email" label="邮箱" min-width="160" :show-overflow-tooltip="true" />
-        <el-table-column prop="realName" label="真实姓名" width="100" />
-       <el-table-column prop="status" label="状态" width="80" align="center">
-  <template #default="scope">
-    <el-tag :type="scope.row.status === 'active' ? 'success' : 'danger'" size="small">
-      {{ scope.row.status === 'active' ? '正常' : '禁用' }}
-    </el-tag>
-  </template>
-</el-table-column>
-        <el-table-column prop="registerTime" label="注册时间" width="120" align="center">
+        <el-table-column prop="role" label="角色" width="100">
           <template #default="scope">
-            {{ formatDate(scope.row.registerTime) }}
+            <el-tag :type="scope.row.role === 'role_admin' ? 'danger' : 'info'" size="small">
+              {{ scope.row.role === 'role_admin' ? '管理员' : '普通用户' }}
+            </el-tag>
           </template>
         </el-table-column>
-        <!-- 🔧 操作列设置固定宽度和对齐 -->
+        <el-table-column prop="isEnable" label="状态" width="80" align="center">
+          <template #default="scope">
+            <el-tag :type="scope.row.isEnable ? 'success' : 'danger'" size="small">
+              {{ scope.row.isEnable ? '正常' : '禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="注册时间" width="150" align="center">
+          <template #default="scope">
+            {{ formatDate(scope.row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="280" align="center" fixed="right">
           <template #default="scope">
             <div class="action-buttons">
@@ -85,7 +96,7 @@
                 size="small" 
                 type="danger" 
                 @click="handleDelete(scope.row)"
-                :disabled="scope.row.status === 'active'"
+                :disabled="scope.row.isEnable"
               >
                 <el-icon><Delete /></el-icon>删除
               </el-button>
@@ -121,11 +132,11 @@
 
       <!-- 分页 - 只在有数据时显示 -->
       <el-pagination
-        v-if="filteredUserList.length > 0"
-        v-model:current-page="pagination.page"
+        v-if="pagination.total > 0"
+        v-model:current-page="pagination.current"
         v-model:page-size="pagination.size"
         :page-sizes="[10, 20, 50, 100]"
-        :total="filteredUserList.length"
+        :total="pagination.total"
         layout="total, sizes, prev, pager, next, jumper"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -133,66 +144,167 @@
       />
     </el-card>
 
-    <!-- 新增/编辑对话框 -->
+    <!-- 美化后的新增/编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
       :title="dialogTitle"
-      width="600px"
+      width="550px"
       @close="resetForm"
+      destroy-on-close
+      append-to-body
+      center
+      class="user-dialog"
     >
-      <el-form
-        ref="formRef"
-        :model="userForm"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username" :disabled="isEdit" />
-        </el-form-item>
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="userForm.phone" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="userForm.email" />
-        </el-form-item>
-        <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="userForm.realName" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password" v-if="!isEdit">
-          <el-input v-model="userForm.password" type="password" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="userForm.status" style="width: 100%">
-            <el-option label="正常" value="active" />
-            <el-option label="禁用" value="disabled" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <div class="dialog-content">
+        <el-form
+          ref="formRef"
+          :model="userForm"
+          :rules="rules"
+          label-position="top"
+          class="dialog-form"
+          label-width="auto"
+        >
+          <el-row :gutter="0" justify="center">
+            <el-col :span="20">
+              <el-form-item label="用户名" prop="username">
+                <el-input 
+                  v-model="userForm.username" 
+                  :disabled="isEdit" 
+                  placeholder="请输入用户名"
+                  prefix-icon="User"
+                />
+              </el-form-item>
+            </el-col>
+            
+            <el-col :span="20">
+              <el-form-item label="手机号" prop="phone">
+                <el-input 
+                  v-model="userForm.phone" 
+                  placeholder="请输入手机号"
+                  prefix-icon="Iphone"
+                />
+              </el-form-item>
+            </el-col>
+            
+            <el-col :span="20">
+              <el-form-item label="邮箱" prop="email">
+                <el-input 
+                  v-model="userForm.email" 
+                  placeholder="请输入邮箱"
+                  prefix-icon="Message"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="20">
+              <el-form-item label="角色" prop="role">
+                <div class="role-container">
+                  <el-radio-group v-model="userForm.role" size="large">
+                    <el-radio-button label="role_user">
+                      <el-icon><User /></el-icon> 普通用户
+                    </el-radio-button>
+                    <el-radio-button label="role_admin">
+                      <el-icon><UserFilled /></el-icon> 管理员
+                    </el-radio-button>
+                  </el-radio-group>
+                </div>
+              </el-form-item>
+            </el-col>
+            
+            <el-col :span="20" v-if="!isEdit">
+              <el-form-item label="密码" prop="password">
+                <el-input 
+                  v-model="userForm.password" 
+                  type="password" 
+                  placeholder="请输入密码" 
+                  show-password
+                  prefix-icon="Lock"
+                />
+              </el-form-item>
+            </el-col>
+            
+            <el-col :span="20">
+              <el-form-item label="状态" prop="isEnable">
+                <div class="status-switch">
+                  <span :class="['status-label', {'active': userForm.isEnable === true}]">正常</span>
+                  <el-switch
+                    v-model="userForm.isEnable"
+                    inline-prompt
+                    class="status-switch-control"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                  />
+                  <span :class="['status-label', {'active': userForm.isEnable === false}]">禁用</span>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </div>
       
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
+          <el-button @click="dialogVisible = false" class="cancel-btn">取消</el-button>
+          <el-button type="primary" @click="handleSubmit" :loading="submitLoading" class="submit-btn">
+            {{ isEdit ? '保存修改' : '创建用户' }}
+          </el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 详情对话框 -->
-    <el-dialog v-model="detailDialogVisible" title="用户详情" width="600px">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="ID">{{ currentUser.id }}</el-descriptions-item>
-        <el-descriptions-item label="用户名">{{ currentUser.username }}</el-descriptions-item>
-        <el-descriptions-item label="手机号">{{ currentUser.phone }}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">{{ currentUser.email }}</el-descriptions-item>
-        <el-descriptions-item label="真实姓名">{{ currentUser.realName }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="currentUser.status === 'active' ? 'success' : 'danger'">
-            {{ currentUser.status === 'active' ? '正常' : '禁用' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="注册时间">{{ formatDateTime(currentUser.registerTime) }}</el-descriptions-item>
-        <el-descriptions-item label="最后登录">{{ formatDateTime(currentUser.lastLoginTime) || '从未登录' }}</el-descriptions-item>
-      </el-descriptions>
+    <!-- 美化后的详情对话框 -->
+    <el-dialog 
+      v-model="detailDialogVisible" 
+      title="用户详情" 
+      width="520px" 
+      center 
+      class="user-dialog detail-dialog"
+    >
+      <div class="user-detail-header">
+        <div class="avatar-container">
+          <el-avatar :size="80" :icon="User" />
+        </div>
+        <div class="user-basic-info">
+          <h3>{{ currentUser.username }}</h3>
+          <div class="user-meta">
+            <el-tag :type="currentUser.role === 'role_admin' ? 'danger' : 'info'" size="small">
+              {{ currentUser.role === 'role_admin' ? '管理员' : '普通用户' }}
+            </el-tag>
+            <el-tag :type="currentUser.isEnable ? 'success' : 'danger'" size="small">
+              {{ currentUser.isEnable ? '正常' : '禁用' }}
+            </el-tag>
+          </div>
+        </div>
+      </div>
+      
+      <el-divider content-position="left">详细信息</el-divider>
+      
+      <div class="user-detail-content">
+        <el-descriptions :column="1" border class="details-descriptions">
+          <el-descriptions-item label="ID">
+            <span class="info-text">{{ currentUser.id }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="手机号">
+            <span class="info-text">{{ currentUser.phone || '未设置' }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="邮箱">
+            <span class="info-text">{{ currentUser.email || '未设置' }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            <span class="info-text">{{ formatDateTime(currentUser.createdAt) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="最后更新">
+            <span class="info-text">{{ formatDateTime(currentUser.updatedAt) }}</span>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="detailDialogVisible = false" class="cancel-btn">关闭</el-button>
+          <el-button type="primary" @click="handleEditFromDetail" class="submit-btn">编辑</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -200,19 +312,36 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
+import axios from 'axios'
 import { 
-  Plus, View, Search, Refresh, FolderOpened, Edit, Delete
+  Plus, View, Search, Refresh, FolderOpened, Edit, Delete, 
+  User, UserFilled, Iphone, Message, Lock
 } from '@element-plus/icons-vue'
 
+// 修改接口定义以匹配后端返回的数据结构
 interface User {
   id: number
   username: string
+  password?: string
   phone: string
   email: string
-  realName: string
-  status: 'active' | 'disabled'
-  registerTime: string
-  lastLoginTime?: string
+  role: 'role_user' | 'role_admin'
+  isEnable: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface Pagination {
+  current: number
+  size: number
+  total: number
+}
+
+interface UserQueryParams {
+  username?: string
+  phone?: string
+  role?: string
+  status?: string
 }
 
 const loading = ref(false)
@@ -220,78 +349,64 @@ const dialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
+const submitLoading = ref(false)
+const userList = ref<User[]>([])
+const currentUser = ref<User>({} as User)
 
-// 时间格式化函数
-const formatDate = (dateStr: string | undefined) => {
-  if (!dateStr) return ''
-  return dateStr.split(' ')[0]
-}
+// 分页参数
+const pagination = reactive<Pagination>({
+  current: 1,
+  size: 10,
+  total: 0
+})
 
-const formatDateTime = (dateStr: string | undefined) => {
-  return dateStr || ''
-}
-
-const searchForm = reactive({
+// 搜索表单
+const searchForm = reactive<UserQueryParams>({
   username: '',
   phone: '',
+  role: '',
   status: ''
 })
 
+// 用户表单 - 修改为匹配后端结构
 const userForm = reactive({
   username: '',
   phone: '',
   email: '',
-  realName: '',
+  role: 'role_user' as 'role_user' | 'role_admin',
   password: '',
-  status: 'active' as 'active' | 'disabled'
+  isEnable: true
 })
 
-const currentUser = ref<User>({} as User)
-const userList = ref<User[]>([])
-const originalUserList = ref<User[]>([])
+// 时间格式化函数 - 修改为适用ISO日期格式
+const formatDate = (dateStr: string | undefined) => {
+  if (!dateStr) return '-'
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('zh-CN')
+  } catch (e) {
+    return dateStr
+  }
+}
 
-const pagination = reactive({
-  page: 1,
-  size: 10,
-  total: 0
-})
+const formatDateTime = (dateStr: string | undefined) => {
+  if (!dateStr) return '-'
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleString('zh-CN')
+  } catch (e) {
+    return dateStr
+  }
+}
 
 const dialogTitle = computed(() => isEdit.value ? '编辑用户' : '新增用户')
 
 // 判断是否有搜索条件
 const hasSearchCondition = computed(() => {
-  return !!(searchForm.username.trim() || searchForm.phone.trim() || searchForm.status)
+  return !!(searchForm.username || searchForm.phone || searchForm.role || searchForm.status)
 })
 
-// 过滤后的用户列表
-const filteredUserList = computed(() => {
-  let filtered = [...userList.value]
-  
-  // 用户名搜索 - 支持用户名和真实姓名模糊匹配
-  if (searchForm.username.trim()) {
-    const searchTerm = searchForm.username.trim().toLowerCase()
-    filtered = filtered.filter(item => 
-      item.username.toLowerCase().includes(searchTerm) ||
-      item.realName.toLowerCase().includes(searchTerm)
-    )
-  }
-  
-  // 手机号搜索 - 部分匹配
-  if (searchForm.phone.trim()) {
-    const searchPhone = searchForm.phone.trim()
-    filtered = filtered.filter(item => 
-      item.phone.includes(searchPhone)
-    )
-  }
-  
-  // 状态搜索
-  if (searchForm.status) {
-    filtered = filtered.filter(item => item.status === searchForm.status)
-  }
-  
-  return filtered
-})
-
+// 表单验证规则 - 修改状态字段为isEnable
 const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' }
@@ -304,264 +419,219 @@ const rules = {
     { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
   ],
-  realName: [
-    { required: true, message: '请输入真实姓名', trigger: 'blur' }
+  role: [
+    { required: true, message: '请选择用户角色', trigger: 'change' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
   ],
-  status: [
+  isEnable: [
     { required: true, message: '请选择状态', trigger: 'change' }
   ]
 }
 
-// 切换用户状态（启用/禁用）
-const toggleUserStatus = async (row: User) => {
-  const action = row.status === 'active' ? '禁用' : '启用'
-  const newStatus = row.status === 'active' ? 'disabled' : 'active'
-  
-  try {
-    await ElMessageBox.confirm(`确定要${action}该用户吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    // 更新用户状态
-    const index = userList.value.findIndex(item => item.id === row.id)
-    if (index !== -1) {
-      userList.value[index].status = newStatus
-      
-      // 同时更新原始列表
-      const originalIndex = originalUserList.value.findIndex(item => item.id === row.id)
-      if (originalIndex !== -1) {
-        originalUserList.value[originalIndex].status = newStatus
-      }
-    }
-    
-    ElMessage.success(`用户已${action}`)
-  } catch {
-    // 用户取消操作
-  }
-}
-
+// 修改加载用户列表函数 - 使用真实API
 const loadUserList = async () => {
   loading.value = true
   try {
-    const mockData: User[] = [
-      {
-        id: 1,
-        username: 'user001',
-        phone: '13888888888',
-        email: 'user001@example.com',
-        realName: '张三',
-        status: 'active',
-        registerTime: '2024-01-15 10:00:00',
-        lastLoginTime: '2024-01-16 14:30:00'
-      },
-      {
-        id: 2,
-        username: 'user002',
-        phone: '13999999999',
-        email: 'user002@example.com',
-        realName: '李四',
-        status: 'active',
-        registerTime: '2024-01-14 09:00:00',
-        lastLoginTime: '2024-01-15 16:20:00'
-      },
-      {
-        id: 3,
-        username: 'user003',
-        phone: '13777777777',
-        email: 'user003@example.com',
-        realName: '王五',
-        status: 'disabled',
-        registerTime: '2024-01-13 15:00:00',
-        lastLoginTime: '2024-01-13 16:00:00'
-      },
-      {
-        id: 4,
-        username: 'admin123',
-        phone: '13666666666',
-        email: 'admin123@example.com',
-        realName: '管理员',
-        status: 'active',
-        registerTime: '2024-01-12 08:00:00',
-        lastLoginTime: '2024-01-16 10:00:00'
-      },
-      {
-        id: 5,
-        username: 'test_user',
-        phone: '13555555555',
-        email: 'test@example.com',
-        realName: '测试用户',
-        status: 'disabled',
-        registerTime: '2024-01-11 12:00:00',
-        lastLoginTime: '2024-01-11 15:00:00'
-      }
-    ]
+    // 构建查询参数
+    const queryDTO: any = {}
     
-    originalUserList.value = [...mockData]
-    userList.value = [...mockData]
-    pagination.total = mockData.length
-  } catch (error) {
-    ElMessage.error('加载用户列表失败')
+    // 添加查询条件
+    if (searchForm.username) queryDTO.username = searchForm.username
+    if (searchForm.phone) queryDTO.phone = searchForm.phone
+    if (searchForm.role) queryDTO.role = searchForm.role
+    if (searchForm.status) queryDTO.isEnable = searchForm.status === 'active'
+
+    // 调用后端接口获取用户列表
+    const response = await axios.get('/api/admin/users', { 
+      params: {
+        current: pagination.current,
+        size: pagination.size,
+        userQueryDTO: queryDTO
+      }
+    })
+
+    if (response.data && response.data.code === 'SUCCESS') {
+      // 成功获取数据
+      userList.value = response.data.data || []
+      
+      // 更新总数 - 根据实际API调整
+      pagination.total = Array.isArray(response.data.data) ? response.data.data.length : 0
+      
+      console.log('✅ 成功加载用户列表:', userList.value.length)
+    } else {
+      throw new Error(response.data?.message || '获取用户列表失败')
+    }
+  } catch (error: any) {
+    console.error('❌ 加载用户列表失败:', error)
+    ElMessage.error(error.response?.data?.message || error.message || '加载用户列表失败')
+    userList.value = []
   } finally {
     loading.value = false
   }
 }
 
+// 删除用户函数 - 使用真实API
+const handleDelete = async (row: User) => {
+  if (row.isEnable) {
+    ElMessage.warning('请先禁用该用户后再删除')
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除用户 "${row.username}" 吗？此操作不可恢复！`, 
+      '删除确认', 
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    // 调用删除用户API
+    const response = await axios.delete('/api/user/delete', {
+      params: { id: row.id }
+    })
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success('用户删除成功')
+      // 重新加载用户列表
+      loadUserList()
+    } else {
+      throw new Error(response.data?.message || '删除用户失败')
+    }
+  } catch (error: any) {
+    if (error === 'cancel') return
+    console.error('❌ 删除用户失败:', error)
+    ElMessage.error(error.message || '删除用户失败')
+  }
+}
+
+// 提交表单 - 添加/编辑用户 (暂时保留模拟功能)
+const handleSubmit = async () => {
+  if (!formRef.value) return
+  
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      submitLoading.value = true
+      try {
+        if (isEdit.value) {
+          // 编辑现有用户 - API文档中缺少此接口
+          ElMessage.warning('当前API文档中缺少更新用户接口，此功能暂时不可用')
+          console.warn('⚠️ 缺少API: 更新用户接口')
+          
+          // 模拟成功，待后端接口实现
+          ElMessage.success('用户信息已更新 (模拟)')
+        } else {
+          // 新增用户 - API文档中缺少此接口
+          ElMessage.warning('当前API文档中缺少创建用户接口，此功能暂时不可用')
+          console.warn('⚠️ 缺少API: 创建用户接口')
+          
+          // 模拟成功，待后端接口实现
+          ElMessage.success('新用户已创建 (模拟)')
+        }
+        
+        dialogVisible.value = false
+        loadUserList() // 重新加载用户列表
+      } catch (error: any) {
+        console.error('❌ 操作失败:', error)
+        ElMessage.error(error.message || '操作失败')
+      } finally {
+        submitLoading.value = false
+      }
+    }
+  })
+}
+
+// 处理分页大小变化
+const handleSizeChange = (size: number) => {
+  pagination.size = size
+  pagination.current = 1 // 重置到第一页
+  loadUserList()
+}
+
+// 处理页码变化
+const handleCurrentChange = (current: number) => {
+  pagination.current = current
+  loadUserList()
+}
+
+// 处理搜索
+const handleSearch = () => {
+  pagination.current = 1 // 重置到第一页
+  loadUserList()
+}
+
+// 重置搜索条件
+const handleReset = () => {
+  Object.assign(searchForm, {
+    username: '',
+    phone: '',
+    role: '',
+    status: ''
+  })
+  pagination.current = 1
+  loadUserList()
+  ElMessage.success('搜索条件已重置')
+}
+
+// 新增用户
 const handleAdd = () => {
   isEdit.value = false
   dialogVisible.value = true
   resetForm()
 }
 
+// 编辑用户 - 修改为匹配后端字段
 const handleEdit = (row: User) => {
   isEdit.value = true
   dialogVisible.value = true
-  currentUser.value = row
-  Object.assign(userForm, row)
+  currentUser.value = { ...row }
+  
+  // 重置表单并填充新值
+  resetForm()
+  Object.assign(userForm, {
+    username: row.username,
+    phone: row.phone,
+    email: row.email,
+    role: row.role,
+    isEnable: row.isEnable
+  })
 }
 
+// 从详情对话框跳转到编辑
+const handleEditFromDetail = () => {
+  detailDialogVisible.value = false
+  handleEdit(currentUser.value)
+}
+
+// 查看用户详情
 const handleView = (row: User) => {
-  currentUser.value = row
+  currentUser.value = { ...row }
   detailDialogVisible.value = true
 }
 
-const handleDelete = async (row: User) => {
-  if (row.status === 'active') {
-    ElMessage.warning('请先禁用该用户后再删除')
-    return
-  }
-  
-  try {
-    await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    // 从列表中删除该记录
-    userList.value = userList.value.filter(item => item.id !== row.id)
-    
-    // 同时从原始列表中删除
-    originalUserList.value = originalUserList.value.filter(item => item.id !== row.id)
-    
-    // 更新分页信息
-    pagination.total = userList.value.length
-    
-    ElMessage.success('删除成功')
-  } catch {
-    // 用户取消删除
-  }
-}
 
-const handleSubmit = async () => {
-  if (!formRef.value) return
-  
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      try {
-        if (isEdit.value) {
-          // 编辑现有用户
-          const index = userList.value.findIndex(item => item.id === currentUser.value.id)
-          if (index !== -1) {
-            // 创建一个新对象，合并当前用户信息和表单数据
-            const updatedUser = {
-              ...currentUser.value,
-              phone: userForm.phone,
-              email: userForm.email,
-              realName: userForm.realName,
-              status: userForm.status
-            }
-            
-            // 更新列表中的用户
-            userList.value[index] = updatedUser
-            
-            // 同时更新原始列表
-            const originalIndex = originalUserList.value.findIndex(item => item.id === currentUser.value.id)
-            if (originalIndex !== -1) {
-              originalUserList.value[originalIndex] = updatedUser
-            }
-          }
-          
-          ElMessage.success('用户信息已更新')
-        } else {
-          // 新增用户
-          const newId = Math.max(...userList.value.map(item => item.id), 0) + 1
-          
-          const newUser: User = {
-            id: newId,
-            username: userForm.username,
-            phone: userForm.phone,
-            email: userForm.email,
-            realName: userForm.realName,
-            status: userForm.status,
-            registerTime: new Date().toLocaleString(),
-            lastLoginTime: undefined
-          }
-          
-          // 添加到列表
-          userList.value.unshift(newUser)
-          originalUserList.value.unshift(newUser)
-          
-          // 更新分页信息
-          pagination.total = userList.value.length
-          
-          ElMessage.success('新用户已创建')
-        }
-        
-        dialogVisible.value = false
-      } catch (error) {
-        ElMessage.error('操作失败')
-      }
-    }
-  })
-}
-
-const handleSearch = () => {
-  const filtered = filteredUserList.value
-  pagination.page = 1
-  
-  if (filtered.length === 0 && hasSearchCondition.value) {
-    ElMessage.warning('未找到符合条件的用户')
-  } else if (filtered.length > 0 && hasSearchCondition.value) {
-    ElMessage.success(`找到 ${filtered.length} 条结果`)
-  }
-}
-
-const handleReset = () => {
-  Object.assign(searchForm, {
-    username: '',
-    phone: '',
-    status: ''
-  })
-  pagination.page = 1
-  ElMessage.success('搜索条件已重置')
-}
-
-const handleSizeChange = (size: number) => {
-  pagination.size = size
-}
-
-const handleCurrentChange = (page: number) => {
-  pagination.page = page
-}
-
+// 重置表单 - 修改为匹配后端字段
 const resetForm = () => {
   Object.assign(userForm, {
     username: '',
     phone: '',
     email: '',
-    realName: '',
+    role: 'role_user',
     password: '',
-    status: 'active' as 'active' | 'disabled'
+    isEnable: true
   })
-  formRef.value?.resetFields()
+  
+  if (formRef.value) {
+    formRef.value.resetFields()
+  }
 }
 
+// 加载初始数据
 onMounted(() => {
   loadUserList()
 })
@@ -581,6 +651,11 @@ onMounted(() => {
 
 .search-card {
   margin-bottom: 20px;
+}
+
+.table-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .search-form {
@@ -618,10 +693,10 @@ onMounted(() => {
   line-height: 1;
   display: flex;
   align-items: center;
-  height: 34px;
+  height: auto;
 }
 
-/* 🔧 表格样式优化 */
+/* 表格样式优化 */
 :deep(.el-table) {
   border-radius: 8px;
   overflow: hidden;
@@ -638,13 +713,13 @@ onMounted(() => {
   background-color: #f5f7fa !important;
 }
 
-/* 🔧 操作按钮样式 */
+/* 操作按钮样式 */
 .action-buttons {
   display: flex;
   gap: 8px;
   align-items: center;
   justify-content: center;
-  flex-wrap: nowrap; /* 防止按钮换行 */
+  flex-wrap: nowrap;
 }
 
 .action-buttons .el-button {
@@ -660,103 +735,244 @@ onMounted(() => {
   font-size: 12px;
 }
 
-/* 状态单元格样式 */
-.status-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.danger-text {
-  color: #F56C6C;
-}
-
-.success-text {
-  color: #67C23A;
-}
-
-:deep(.el-button--text) {
-  padding: 0 4px;
-  height: auto;
-  font-size: 12px;
-}
-
-:deep(.el-button--text:hover) {
-  background: transparent;
-  opacity: 0.8;
-}
-
 /* 修复下拉框样式 */
 :deep(.el-select) {
   width: 140px;
-  
-  .el-input__wrapper {
-    box-shadow: 0 0 0 1px #dcdfe6 inset;
-    border-radius: 6px;
-    height: 34px;
-  }
-  
-  .el-input__inner {
-    font-size: 13px;
-    height: 34px;
-    line-height: 34px;
-    border: none;
-    background: transparent;
-    padding: 0 24px 0 12px !important;
-    color: #606266;
-  }
+}
+
+:deep(.el-select .el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  border-radius: 6px;
+  height: 34px;
+}
+
+:deep(.el-select .el-input__inner) {
+  font-size: 13px;
+  height: 34px;
+  line-height: 34px;
+  border: none;
+  background: transparent;
+  padding: 0 24px 0 12px !important;
+  color: #606266;
 }
 
 :deep(.el-input) {
   width: 140px;
-  
-  .el-input__wrapper {
-    box-shadow: 0 0 0 1px #dcdfe6 inset;
-    border-radius: 6px;
-    height: 34px;
-  }
-  
-  .el-input__inner {
-    font-size: 13px;
-    height: 34px;
-    line-height: 34px;
-    border: none;
-    background: transparent;
-    padding: 0 12px;
-    color: #606266;
-  }
 }
 
-:deep(.el-select-dropdown) {
-  min-width: 140px;
+:deep(.el-input .el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  border-radius: 6px;
+  height: 34px;
 }
 
-:deep(.el-select-dropdown__item) {
-  padding: 0 12px;
+:deep(.el-input .el-input__inner) {
+  font-size: 13px;
   height: 34px;
   line-height: 34px;
-  font-size: 13px;
+  border: none;
+  background: transparent;
+  padding: 0 12px;
   color: #606266;
-  white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
 }
 
-:deep(.el-button) {
-  height: 34px;
-  font-size: 13px;
-  border-radius: 6px;
-  padding: 0 16px;
-  margin: 0 4px;
+/* 改进对话框样式 */
+.user-dialog {
+  :deep(.el-dialog__body) {
+    padding: 24px 24px 30px;
+  }
+  
+  :deep(.el-dialog__header) {
+    margin: 0;
+    padding: 20px 30px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+  }
+  
+  :deep(.el-dialog__title) {
+    font-weight: 600;
+    font-size: 18px;
+  }
+  
+  :deep(.el-dialog__footer) {
+    padding: 16px 30px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 0;
+  }
 }
 
-:deep(.el-button:first-child) {
-  margin-left: 0;
+/* 对话框内容区域 */
+.dialog-content {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
 }
 
-:deep(.el-button:last-child) {
-  margin-right: 0;
+/* 改进对话框表单样式 */
+.dialog-form {
+  width: 100%;
+  padding: 5px 0;
+}
+
+:deep(.dialog-form .el-form-item) {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+:deep(.dialog-form .el-form-item:last-child) {
+  margin-bottom: 5px;
+}
+
+:deep(.dialog-form .el-form-item__label) {
+  padding-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #303133;
+  text-align: left;
+}
+
+:deep(.dialog-form .el-input__wrapper),
+:deep(.dialog-form .el-select .el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  padding: 0 12px;
+  border-radius: 4px;
+  height: 40px;
+  width: 100%;
+}
+
+:deep(.dialog-form .el-input__inner) {
+  height: 40px;
+  font-size: 14px;
+}
+
+:deep(.dialog-form .el-input),
+:deep(.dialog-form .el-select) {
+  width: 100%;
+}
+
+/* 角色选择按钮组容器 */
+.role-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 角色单选按钮组样式 */
+:deep(.el-radio-group) {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: auto;
+}
+
+:deep(.el-radio-button__inner) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 40px;
+  padding: 0 20px;
+}
+
+:deep(.el-radio-button:first-child .el-radio-button__inner) {
+  border-radius: 4px 0 0 4px;
+}
+
+:deep(.el-radio-button:last-child .el-radio-button__inner) {
+  border-radius: 0 4px 4px 0;
+}
+
+/* 状态切换开关 */
+.status-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  height: 40px;
+}
+
+.status-label {
+  font-size: 14px;
+  color: #909399;
+  transition: color 0.3s;
+}
+
+.status-label.active {
+  font-weight: 500;
+  color: #303133;
+}
+
+.status-switch-control {
+  transform: scale(1.2);
+}
+
+/* 详情对话框样式 */
+.user-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 0 20px;
+}
+
+.avatar-container {
+  margin-right: 20px;
+}
+
+.user-basic-info {
+  flex: 1;
+}
+
+.user-basic-info h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #303133;
+}
+
+.user-meta {
+  display: flex;
+  gap: 10px;
+}
+
+.user-detail-content {
+  margin-top: 10px;
+}
+
+/* 详情描述列表 */
+.details-descriptions {
+  margin: 10px 0;
+}
+
+.details-descriptions :deep(.el-descriptions__label) {
+  width: 120px;
+  font-weight: 500;
+  color: #303133;
+  background-color: #fafafa;
+}
+
+.details-descriptions :deep(.el-descriptions__content) {
+  padding: 12px 15px;
+}
+
+.info-text {
+  color: #606266;
+}
+
+/* 表单按钮 */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.submit-btn {
+  min-width: 100px;
+}
+
+.cancel-btn {
+  min-width: 80px;
 }
 
 .pagination {
@@ -798,33 +1014,6 @@ onMounted(() => {
   margin: 0;
 }
 
-/* 对话框样式改进 */
-:deep(.el-dialog__body) {
-  padding: 20px 24px;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 16px 24px;
-  border-top: 1px solid #ebeef5;
-}
-
-/* 表单样式优化 */
-:deep(.el-dialog .el-form-item__label) {
-  font-weight: 500;
-  color: #303133;
-}
-
-:deep(.el-dialog .el-input__wrapper),
-:deep(.el-dialog .el-select .el-input__wrapper) {
-  width: 100%;
-  box-shadow: 0 0 0 1px #dcdfe6 inset;
-}
-
-:deep(.el-dialog .el-input),
-:deep(.el-dialog .el-select) {
-  width: 100%;
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   :deep(.el-form--inline) {
@@ -850,6 +1039,19 @@ onMounted(() => {
   .action-buttons .el-button {
     width: 100%;
     justify-content: center;
+  }
+
+  :deep(.el-radio-group) {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  :deep(.el-radio-button:first-child .el-radio-button__inner) {
+    border-radius: 4px;
+  }
+
+  :deep(.el-radio-button:last-child .el-radio-button__inner) {
+    border-radius: 4px;
   }
 }
 </style>

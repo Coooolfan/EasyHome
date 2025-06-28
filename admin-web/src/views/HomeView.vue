@@ -80,16 +80,11 @@
           </el-menu-item>
 
           <!-- 功能管理 -->
-          <el-sub-menu index="function" v-if="canAccessFunction" class="sub-menu">
+          <el-sub-menu index="function"  class="sub-menu">
             <template #title>
               <el-icon class="menu-icon"><Setting /></el-icon>
               <span class="menu-title">功能管理</span>
             </template>
-            
-            <el-menu-item index="/admin-manage" v-if="isSuperAdmin" class="sub-menu-item">
-              <el-icon class="sub-menu-icon"><UserFilled /></el-icon>
-              <span>管理员管理</span>
-            </el-menu-item>
             
             <el-menu-item index="/user-manage" class="sub-menu-item">
               <el-icon class="sub-menu-icon"><User /></el-icon>
@@ -209,20 +204,19 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Plus, Document, Refresh, TrendCharts, Clock, House, User,
-  ArrowUp, ArrowDown, UserFilled, OfficeBuilding, Warning,
-  Check, Money, StarFilled, Download, UploadFilled, ArrowRight,
+  House, User, ArrowDown, UserFilled, OfficeBuilding, 
   DocumentChecked, Calendar, Bell, Search, Setting, SwitchButton,
   DataAnalysis
 } from '@element-plus/icons-vue'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
 const activeMenu = computed(() => route.path)
-const isSuperAdmin = computed(() => userStore.userInfo.role === 'super_admin')
-const canAccessFunction = computed(() => userStore.userInfo.role === 'super_admin' || userStore.userInfo.role === 'admin')
+const isSuperAdmin = computed(() => userStore.userInfo.role === 'role_admin')
+const canAccessFunction = computed(() => userStore.userInfo.role === 'role_admin' || userStore.userInfo.role === 'admin')
 
 const userInfo = ref({
   username: userStore.userInfo.username || '管理员',
@@ -244,7 +238,6 @@ const handleMenuSelect = (index: string) => {
   router.push(index)
 }
 
-// 修改用户下拉菜单命令处理
 const handleUserCommand = async (command: string) => {
   switch (command) {
     case 'profile':
@@ -260,7 +253,26 @@ const handleUserCommand = async (command: string) => {
           cancelButtonText: '取消',
           type: 'warning'
         })
+        
+        // 调用后端登出接口
+        const token = localStorage.getItem('admin_token')
+        if (token) {
+          try {
+            await axios.post('/api/admin/logout', null, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            })
+          } catch (error) {
+            console.error('调用登出接口出错', error)
+            // 即使API调用失败，也继续前端登出流程
+          }
+        }
+        
+        // 前端清理登录状态
+        localStorage.removeItem('admin_token')
         await userStore.logout()
+        
         router.push('/login')
         ElMessage.success('退出登录成功')
       } catch {

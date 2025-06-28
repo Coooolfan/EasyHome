@@ -22,12 +22,6 @@ const router = createRouter({
           component: () => import('@/views/DashboardView.vue'),
         },
         {
-          path: '/admin-manage',
-          name: 'AdminManage',
-          component: () => import('../views/AdminManageView.vue'),
-          meta: { requiresSuperAdmin: true }
-        },
-        {
           path: '/user-manage',
           name: 'UserManage',
           component: () => import('../views/UserManageView.vue')
@@ -37,7 +31,6 @@ const router = createRouter({
           name: 'HouseManage',
           component: () => import('../views/HouseManageView.vue')
         },
-        //  新增卖房管理路由
         {
           path: '/sell-house-manage',
           name: 'SellHouseManage',
@@ -48,7 +41,7 @@ const router = createRouter({
         {
           path: '/reservation-manage',
           name: 'ReservationManage',
-          component: () => import('../views/ReservationManageView.vue'),
+          component: () => import('../views/AppointmentManageView.vue'),
           meta: { title: '预约管理' }
         },
         {
@@ -70,15 +63,32 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
-  userStore.initUser()
-
+  
+  // 初始化用户状态 - 会从本地存储中恢复身份认证信息
+  const isAuthenticated = userStore.initUser()
+  
+  // 如果路由需要认证但用户未登录
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    next('/login')
-  } else if (to.meta.requiresSuperAdmin && userStore.userInfo.role !== 'super_admin') {
-    next('/dashboard')
-  } else if (to.path === '/login' && userStore.isLoggedIn) {
-    next('/')
-  } else {
+    next({ path: '/login', query: { redirect: to.fullPath } }) // 保存原目标路径
+  } 
+  // 如果路由需要超级管理员权限但用户不是超级管理员
+  else if (to.meta.requiresSuperAdmin && userStore.userInfo.role !== 'role_admin') {
+    next('/dashboard') // 重定向到仪表盘
+  } 
+  // 如果用户已登录但尝试访问登录页
+  else if (to.path === '/login' && userStore.isLoggedIn) {
+    next('/') // 重定向到首页
+  } 
+  // 检查角色权限
+  else if (to.meta.roles && Array.isArray(to.meta.roles) && to.meta.roles.length > 0) {
+    if (to.meta.roles.includes(userStore.userInfo.role)) {
+      next() // 允许访问
+    } else {
+      next('/dashboard') // 重定向到仪表盘
+    }
+  } 
+  // 其他情况，允许继续
+  else {
     next()
   }
 })

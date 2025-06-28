@@ -13,6 +13,7 @@ import com.coooolfan.easyhome.pojo.dto.HouseDTO;
 import com.coooolfan.easyhome.pojo.entity.*;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.noear.solon.ai.embedding.EmbeddingModel;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ import java.util.List;
  * @version 0.0.1
  **/
 @Service
+@Slf4j
 public class HouseRecordServiceImpl
         extends ServiceImpl<HouseRecordMapper, HouseRecord>
         implements HouseRecordService {
@@ -43,6 +45,9 @@ public class HouseRecordServiceImpl
 
     @Resource
     private HouseUserRelationMapper houseUserRelationMapper;
+
+    @Autowired
+    private HouseRecordMapper houseRecordMapper;
 
     @Override
     public void publish(Long userId, HouseDTO dto) {
@@ -123,6 +128,7 @@ public class HouseRecordServiceImpl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean review(Long id, boolean pass, String reason) {
+        log.info("审核房屋记录，ID={}, 通过={}", id, pass);
         HouseRecord record = this.getById(id);
         if (record == null) {
             throw new RuntimeException("记录不存在，ID=" + id);
@@ -131,7 +137,6 @@ public class HouseRecordServiceImpl
         if (pass) {
             record.setStatus(PublishConstant.APPROVED);
             record.setReason(reason);
-
             House house = House.builder()
                     .title(record.getTitle())
                     .address(record.getAddress())
@@ -171,6 +176,7 @@ public class HouseRecordServiceImpl
         } else {
             record.setStatus(PublishConstant.REJECTED);
             record.setReason(reason);
+            houseRecordMapper.updateById(record);
             return false;
         }
     }
@@ -178,7 +184,7 @@ public class HouseRecordServiceImpl
     @Override
     public List<HouseRecord> getReceivedRecords() {
         return this.lambdaQuery()
-                .eq(HouseRecord::getStatus, PublishConstant.RECEIVED)
+//                .eq(HouseRecord::getStatus, PublishConstant.RECEIVED)
                 .orderByDesc(HouseRecord::getCreatedAt)
                 .list();
     }

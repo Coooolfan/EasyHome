@@ -1,19 +1,23 @@
 package com.coooolfan.easyhome.service.impl;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coooolfan.easyhome.constant.AuthConstant;
 import com.coooolfan.easyhome.exception.RegisterException;
 import com.coooolfan.easyhome.mapper.SysUserMapper;
-import com.coooolfan.easyhome.pojo.dto.LoginDTO;
-import com.coooolfan.easyhome.pojo.dto.ProfileDTO;
-import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
+import com.coooolfan.easyhome.pojo.dto.*;
+import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.SysUser;
 import com.coooolfan.easyhome.pojo.vo.UserVO;
 import com.coooolfan.easyhome.service.SysUserService;
 import jakarta.security.auth.message.AuthException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 /**
@@ -125,4 +129,19 @@ public class SysUserServiceImpl
             throw new RuntimeException("更新密码失败，请稍后再试");
         }
     }
+
+    @Override
+    public List<SysUser> getUsersByPage(Page<SysUser> page, UserQueryDTO userQueryDTO) {
+        return this.lambdaQuery()
+                .like(StringUtils.isNotBlank(userQueryDTO.getUsername()), SysUser::getUsername, userQueryDTO.getUsername())
+                .eq(StringUtils.isNotBlank(userQueryDTO.getRole()), SysUser::getRole, userQueryDTO.getRole())
+                .like(StringUtils.isNotBlank(userQueryDTO.getPhone()), SysUser::getPhone, userQueryDTO.getPhone())
+                .like(StringUtils.isNotBlank(userQueryDTO.getEmail()), SysUser::getEmail, userQueryDTO.getEmail())
+                .eq(userQueryDTO.getIsEnable() != null, SysUser::getIsEnable, userQueryDTO.getIsEnable())
+                .orderByDesc(SysUser::getCreatedAt)
+                .page(page)
+                .getRecords();
+    }
+
+
 }
