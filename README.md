@@ -16,14 +16,14 @@ EasyHome是一个基于LLM（大语言模型）和RAG（检索增强生成）技
 
 ### 截图
 
-![首页聊天展示](./img/easyhome-screenshot-1.png)
-![查房页](./img/easyhome-screenshot-8.png)
-![预约看房](./img/easyhome-screenshot-7.png)
-![房屋详情模态框](./img/easyhome-screenshot-2.png)
-![发布房源](./img/easyhome-screenshot-6.png)
-![账号设置](./img/easyhome-screenshot-3.png)
-![我的收藏页](./img/easyhome-screenshot-4.png)
-![个人主页](./img/easyhome-screenshot-5.png)
+![首页聊天展示](./img/easyhome-screenshot-1.webp)
+![查房页](./img/easyhome-screenshot-8.webp)
+![预约看房](./img/easyhome-screenshot-7.webp)
+![房屋详情模态框](./img/easyhome-screenshot-2.webp)
+![发布房源](./img/easyhome-screenshot-6.webp)
+![账号设置](./img/easyhome-screenshot-3.webp)
+![我的收藏页](./img/easyhome-screenshot-4.webp)
+![个人主页](./img/easyhome-screenshot-5.webp)
 
 ## 技术架构
 
