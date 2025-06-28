@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -73,21 +72,19 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
 
 
     @Override
+    @SneakyThrows
     public String getHousesDescByVectorSearch(ArrayList<ChatMessage> historyMessage, ChatMessage question, int limit) {
         StringBuilder ragPromptBuilder = getPromptBuilder(historyMessage);
         String ragPrompt = String.format(LLMConstant.RAG_REWRITE, ragPromptBuilder, question.getContent());
-        try {
-            val rewriteResp = rewriteModel.prompt(ragPrompt).call();
-            val regQuestion = rewriteResp.getAggregationMessage().getContent();
-            val housesByVectorSearch = this.getHousesByVectorSearch(regQuestion, limit);
-            StringBuilder sb = new StringBuilder();
-            for (val house : housesByVectorSearch) {
-                sb.append(EasyHomeUtils.toString(house)).append("\n");
-            }
-            return String.format("<authoritative-information>\n%s\n</authoritative-information>",sb);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        val rewriteResp = rewriteModel.prompt(ragPrompt).call();
+        val regQuestion = rewriteResp.getAggregationMessage().getContent();
+        val housesByVectorSearch = this.getHousesByVectorSearch(regQuestion, limit);
+        StringBuilder sb = new StringBuilder();
+        for (val house : housesByVectorSearch) {
+            sb.append(EasyHomeUtils.toString(house)).append("\n");
         }
+        return String.format("<authoritative-information>\n%s\n</authoritative-information>", sb);
+
     }
 
     public static StringBuilder getPromptBuilder(ArrayList<ChatMessage> historyMessage) {
@@ -114,7 +111,7 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
         for (val house : housesByVectorSearch) {
             sb.append(EasyHomeUtils.toString(house)).append("\n");
         }
-        return String.format("<authoritative-information>\n%s\n</authoritative-information>",sb);
+        return String.format("<authoritative-information>\n%s\n</authoritative-information>", sb);
     }
 
     @Override
@@ -131,8 +128,8 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
                 embedding = EmbeddingUtils.cut(embedding);
                 houseVecMapper.insertHouseVec(house.getId(), Arrays.toString(embedding));
             }
-        }catch (Exception e) {
-            log.error(HouseConstant.FAIL_ADD , e.getMessage());
+        } catch (Exception e) {
+            log.error(HouseConstant.FAIL_ADD, e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -151,7 +148,7 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateHouseWithVec(Long id,HouseDTO houseDTO) {
+    public void updateHouseWithVec(Long id, HouseDTO houseDTO) {
         House house = new House();
         BeanUtils.copyProperties(houseDTO, house);
         house.setId(id);
@@ -170,11 +167,10 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
                 houseVecMapper.updateHouseVec(house.getId(), embeddingStr);
             }
         } catch (Exception e) {
-            log.error(HouseConstant.FAIL_UPDATE , e.getMessage());
+            log.error(HouseConstant.FAIL_UPDATE, e.getMessage());
             throw new RuntimeException(e);
         }
     }
-
 
 
     private QueryWrapper<House> buildQueryWrapper(HouseQueryDTO queryVO) {

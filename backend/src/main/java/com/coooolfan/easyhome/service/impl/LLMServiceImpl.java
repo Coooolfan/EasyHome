@@ -3,6 +3,7 @@ package com.coooolfan.easyhome.service.impl;
 import com.coooolfan.easyhome.constant.LLMConstant;
 import com.coooolfan.easyhome.pojo.dto.LLMStreamDTO;
 import com.coooolfan.easyhome.pojo.dto.StreamChatResp;
+import com.coooolfan.easyhome.service.CommonKnowledgeVecService;
 import com.coooolfan.easyhome.service.HouseService;
 import com.coooolfan.easyhome.service.LLMService;
 import com.coooolfan.easyhome.utils.ChatSession;
@@ -30,6 +31,7 @@ import static com.coooolfan.easyhome.constant.LLMConstant.REJECT_STREAM_CHAT_RES
 public class LLMServiceImpl implements LLMService {
 
     private final static ConcurrentHashMap<String, ChatSession> chatMap = new ConcurrentHashMap<>();
+    private final CommonKnowledgeVecService commonKnowledgeVecService;
 
     private HouseService houseService;
 
@@ -40,18 +42,8 @@ public class LLMServiceImpl implements LLMService {
     public Flux<StreamChatResp> stream(@RequestBody LLMStreamDTO message) {
         ArrayList<ChatMessage> chatHistory;
         ChatSession chatSession;
-
         if (chatMap.containsKey(message.getUuid())) {
             chatSession = chatMap.get(message.getUuid());
-//            if (chatSession.isSteaming()) {
-//                log.warn("当前会话正在进行中，请稍后再试");
-//                return Flux.just(new StreamChatResp(
-//                        "当前会话正在进行中，请稍后再试",
-//                        "System",
-//                        true,
-//                        "当前会话正在进行中，请稍后再试"
-//                ));
-//            }
             chatSession.setSteaming(true);
             // 浅拷贝聊天记录
             chatHistory = new ArrayList<>(chatSession.getChatContent());
@@ -71,7 +63,10 @@ public class LLMServiceImpl implements LLMService {
                 return Flux.just(MORE_STEAM_CHAT_RESP);
             }
             // 拼接RAG 与 用户的新消息 发送至LLM
-            chatHistory.add(new UserMessage(houseService.getHousesDescByVectorSearch(chatHistory, new UserMessage(message.getMessage()), 5) + "\n" + message.getMessage()));
+            chatHistory.add(new UserMessage(
+                    houseService.getHousesDescByVectorSearch(chatHistory, new UserMessage(message.getMessage()), 5) + "\n"
+                            + commonKnowledgeVecService.getCommonKnowledgeDescByVectorSearch(chatHistory, new UserMessage(message.getMessage()), 5) + "\n"
+                            + message.getMessage()));
 
         } else {
 
@@ -92,7 +87,10 @@ public class LLMServiceImpl implements LLMService {
                 return Flux.just(MORE_STEAM_CHAT_RESP);
             }
             // 拼接RAG 与 用户的新消息 发送至LLM
-            chatHistory.add(new UserMessage(houseService.getHousesDescByVectorSearch(new UserMessage(message.getMessage()), 5) + "\n" + message.getMessage()));
+            chatHistory.add(new UserMessage(
+                    houseService.getHousesDescByVectorSearch(new UserMessage(message.getMessage()), 5) + "\n"
+                            + commonKnowledgeVecService.getCommonKnowledgeDescByVectorSearch(new UserMessage(message.getMessage()), 5) + "\n"
+                            + message.getMessage()));
         }
         log.info("Start stream chat {} connection", message.getUuid());
         return Flux.from(chatModel.prompt(chatHistory).stream())
