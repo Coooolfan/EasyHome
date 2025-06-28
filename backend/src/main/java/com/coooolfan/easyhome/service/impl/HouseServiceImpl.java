@@ -16,6 +16,7 @@ import com.coooolfan.easyhome.pojo.dto.HouseQueryDTO;
 import com.coooolfan.easyhome.service.HouseRecordService;
 import com.coooolfan.easyhome.service.HouseService;
 import com.coooolfan.easyhome.utils.EasyHomeUtils;
+import com.coooolfan.easyhome.utils.EmbeddingUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,8 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
     @Override
     @SneakyThrows
     public List<House> getHousesByVectorSearch(String query, int limit) {
-        val embedding = embed.input(query).call().getData().getFirst().getEmbedding();
+        var embedding = embed.input(query).call().getData().getFirst().getEmbedding();
+        embedding = EmbeddingUtils.cut(embedding);
         List<Long> similarHouses = houseVecMapper.findSimilarHouses(Arrays.toString(embedding), limit);
         return houseMapper.selectBatchIds(similarHouses);
     }
@@ -121,10 +123,11 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
         BeanUtils.copyProperties(houseDTO, house);
         try {
             if (this.save(house)) {
-                val embedding = embed.input(house
+                var embedding = embed.input(house
                                 .toString()).call()
                         .getData().getFirst()
                         .getEmbedding();
+                embedding = EmbeddingUtils.cut(embedding);
                 houseVecMapper.insertHouseVec(house.getId(), Arrays.toString(embedding));
             }
         }catch (Exception e) {
@@ -159,8 +162,9 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
         try {
             int rows = houseMapper.updateById(house);
             if (rows > 0) {
-                val embedding = embed.input(house.toString()).call()
+                var embedding = embed.input(house.toString()).call()
                         .getData().getFirst().getEmbedding();
+                embedding = EmbeddingUtils.cut(embedding);
                 String embeddingStr = Arrays.toString(embedding);
                 houseVecMapper.updateHouseVec(house.getId(), embeddingStr);
             }

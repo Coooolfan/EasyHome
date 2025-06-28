@@ -22,5 +22,11 @@ public class AdminController {
     }
 
 
+    @PostMapping("/common_knowledge_vec/setup")
+    @Operation(summary = "初始化公共知识向量数据")
+    public void setupCommonKnowledgeVec() {
+        adminService.resetCommonKnowledgeVec();
+    }
+
 
 }
