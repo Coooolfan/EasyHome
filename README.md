@@ -14,6 +14,17 @@ EasyHome是一个基于LLM（大语言模型）和RAG（检索增强生成）技
 - **房源搜索**：支持多维度的房源筛选和搜索
 - **通知系统**：预约确认、房源更新等通知推送
 
+### 截图
+
+![首页聊天展示](./img/easyhome-screenshot-1.png)
+![查房页](./img/easyhome-screenshot-8.png)
+![预约看房](./img/easyhome-screenshot-7.png)
+![房屋详情模态框](./img/easyhome-screenshot-2.png)
+![发布房源](./img/easyhome-screenshot-6.png)
+![账号设置](./img/easyhome-screenshot-3.png)
+![我的收藏页](./img/easyhome-screenshot-4.png)
+![个人主页](./img/easyhome-screenshot-5.png)
+
 ## 技术架构
 
 ### 技术栈
@@ -304,6 +315,9 @@ cd EasyHome
 cp backend/src/main/resources/application-dev.template backend/src/main/resources/application-dev.yml
 ```
 
+> [!NOTE]
+> 此项目允许以空数据库启动，只需确保相关表结构存在。相关内容程序实现未充分考虑从0开始配置的情况。确保有相关软件开发经验。
+
 编辑 `application-dev.yml` 文件，配置以下内容：
 
 - 数据库连接信息
@@ -318,8 +332,8 @@ cp backend/src/main/resources/application-dev.template backend/src/main/resource
 # 启动数据库和中间件服务
 docker-compose up -d
 
-# 执行SQL初始化脚本
-psql -U easyhome -d easyhome -h localhost -f sql/init.sql
+# 执行SQL初始化脚本 sql/init.sql
+# 或者直接使用sql/dump.sql导入数据
 ```
 
 ### 启动项目
