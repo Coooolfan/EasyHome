@@ -4,7 +4,6 @@ import { ref, onUnmounted, onMounted, computed } from "vue";
 import { marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
-// 注意引入样式，你可以前往 node_module 下查看更多的样式主题
 import "highlight.js/styles/base16/darcula.css";
 import HouseMiniCard from "@/components/HouseMiniCard.vue";
 import HouseDetailModal from "@/components/HouseDetail.vue";
@@ -281,7 +280,6 @@ function renderhousesCards(content: string) {
     // 将新的ID添加到数组头部
     housesRecommend.value = [...uniqueNewIds, ...housesRecommend.value];
   }
-  console.log("housesRecommend: ", housesRecommend.value);
 }
 </script>
 
