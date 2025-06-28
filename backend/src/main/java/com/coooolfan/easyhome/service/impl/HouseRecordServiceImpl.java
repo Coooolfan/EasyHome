@@ -15,9 +15,9 @@ import com.coooolfan.easyhome.service.HouseRecordService;
 import com.coooolfan.easyhome.utils.EmbeddingUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.noear.solon.ai.embedding.EmbeddingModel;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -156,7 +156,7 @@ public class HouseRecordServiceImpl
 
             try {
                 houseMapper.insert(house);
-                val embedding = embed.input(house
+                var embedding = embed.input(house
                                 .toString()).call()
                         .getData().getFirst()
                         .getEmbedding();
