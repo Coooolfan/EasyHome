@@ -46,7 +46,7 @@ public class HouseRecordServiceImpl
     @Resource
     private HouseUserRelationMapper houseUserRelationMapper;
 
-    @Autowired
+    @Resource
     private HouseRecordMapper houseRecordMapper;
 
     @Override

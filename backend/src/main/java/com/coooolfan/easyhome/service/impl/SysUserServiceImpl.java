@@ -143,5 +143,59 @@ public class SysUserServiceImpl
                 .getRecords();
     }
 
+    @Override
+    public void createUser(UserCreateDTO userCreateDTO) {
+        SysUser user = SysUser.builder()
+                .username(userCreateDTO.getUsername())
+                .password(SaSecureUtil.md5(userCreateDTO.getPassword()))
+                .email(userCreateDTO.getEmail())
+                .phone(userCreateDTO.getPhone())
+                .role(userCreateDTO.getRole())
+                .isEnable(true)
+                .build();
+
+        // 二次校验
+        if (StringUtils.isAnyBlank(user.getUsername(), user.getPassword(), user.getEmail())) {
+            throw new RegisterException(AuthConstant.SOMETHING_BLANK);
+        }
+
+        // 检查用户名是否已存在
+        if (lambdaQuery().eq(SysUser::getUsername, user.getUsername()).exists()) {
+            throw new RegisterException(AuthConstant.USERNAME_ALREADY_EXISTS);
+        }
+
+        // 保存用户
+        if (!save(user)) {
+            throw new RegisterException(AuthConstant.REGISTER_FAIL);
+        }
+    }
+
+    @Override
+    public void updateUser(Long id, UserUpdateDTO userUpdateDTO) {
+        SysUser sysUser = this.getById(id);
+        if (sysUser == null) {
+            throw new RuntimeException("用户不存在，ID=" + id);
+        }
+
+        sysUser.setEmail(userUpdateDTO.getEmail());
+        sysUser.setPhone(userUpdateDTO.getPhone());
+        sysUser.setRole(userUpdateDTO.getRole());
+        sysUser.setIsEnable(userUpdateDTO.getIsEnable());
+        this.updateById(sysUser);
+    }
+
+    @Override
+    public void updateUserStatus(Long id, Boolean isEnable) {
+        SysUser sysUser = this.getById(id);
+        if (sysUser == null) {
+            throw new RuntimeException("用户不存在，ID=" + id);
+        }
+
+        sysUser.setIsEnable(isEnable);
+        if (!this.updateById(sysUser)) {
+            throw new RuntimeException("更新用户状态失败，请稍后再试");
+        }
+    }
+
 
 }

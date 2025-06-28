@@ -23,12 +23,12 @@ import java.time.LocalDateTime;
 public class SysUser{
     @TableId(value = "id",type = IdType.AUTO)
     private Long id;
-    private final String username;
+    private String username;
     private String password;
-    private final String role;
-    private final String phone;
-    private final String email;
-    private final Boolean isEnable;
+    private String role;
+    private  String phone;
+    private String email;
+    private Boolean isEnable;
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
