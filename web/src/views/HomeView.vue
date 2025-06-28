@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { defineComponent } from "vue";
-import { ref, onUnmounted, onMounted } from "vue";
+import { ref, onUnmounted, onMounted, computed } from "vue";
 import { marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 // 注意引入样式，你可以前往 node_module 下查看更多的样式主题
 import "highlight.js/styles/base16/darcula.css";
+import HouseMiniCard from "@/components/HouseMiniCard.vue";
+import HouseDetailModal from "@/components/HouseDetail.vue";
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -37,10 +39,13 @@ const resetAllStates = () => {
   controller = null;
 };
 
-// 在组件挂载时生成会话ID
+// 在组件挂载时生成会话ID和初始化测试数据
 onMounted(() => {
   sessionId.value = crypto.randomUUID();
   console.log("创建新会话:", sessionId.value);
+  
+  // 添加一些测试房源ID，实际使用时可以移除
+  // 在开发环境中添加测试数据
 });
 
 const sendMessage = async (): Promise<void> => {
@@ -222,6 +227,36 @@ const renderedContent = (message: Message) => {
 
 const housesRecommend = ref<number[]>([]);
 
+// 模态框状态
+const showDetailModal = ref(false);
+const selectedHouse = ref<any>(null);
+
+// 查看房源详情
+const viewHouseDetail = (house: any) => {
+  selectedHouse.value = house;
+  showDetailModal.value = true;
+};
+
+// 关闭详情模态框
+const closeDetailModal = () => {
+  showDetailModal.value = false;
+};
+
+// 切换收藏状态
+const toggleFavorite = async (houseId: number) => {
+  console.log('切换收藏状态:', houseId);
+  // 这里可以添加收藏/取消收藏的逻辑
+  // 可以复用SearchView中的收藏逻辑
+};
+
+// 控制推荐房源区域的显示与隐藏
+const showRecommendations = computed(() => housesRecommend.value.length > 0);
+
+// 限制显示的推荐房源数量，最多显示4个
+const displayedHouseIds = computed(() => {
+  return housesRecommend.value.slice(0, 4);
+});
+
 function renderhousesCards(content: string) {
   // 解析content，获取housesRecommend
   // 所有housesRecommend的值都为数字，以类似于 [^1] [^2] [^3] 的形式给出
@@ -308,6 +343,32 @@ function renderhousesCards(content: string) {
         </div>
       </div>
 
+      <!-- 推荐房源区域 -->
+      <div v-if="showRecommendations" class="bg-white shadow-sm rounded-xl mb-6 p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-medium text-gray-900">为您推荐的房源</h2>
+          <router-link 
+            to="/search" 
+            class="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+          >
+            查看更多
+            <svg class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div v-for="houseId in displayedHouseIds" :key="houseId">
+            <HouseMiniCard 
+              :houseId="houseId" 
+              @viewDetail="viewHouseDetail" 
+              @toggleFavorite="toggleFavorite"
+            />
+          </div>
+        </div>
+      </div>
+
       <!-- 输入区域 -->
       <form @submit="handleSubmit" class="bg-white shadow-sm rounded-xl p-6">
         <div class="flex items-center">
@@ -343,6 +404,14 @@ function renderhousesCards(content: string) {
         </div>
       </form>
     </div>
+    
+    <!-- 房源详情模态框 -->
+    <HouseDetailModal 
+      :show="showDetailModal" 
+      :house="selectedHouse" 
+      @close="closeDetailModal"
+      @favoriteChange="(houseId, isFav) => toggleFavorite(houseId)"
+    />
   </main>
 </template>
 
