@@ -73,13 +73,12 @@ graph TD
     subgraph "前端层"
         A1["用户端Web应用"] 
         A2["管理端Web应用"]
-        A3["Nginx反向代理"]
     end
     
     subgraph "后端服务层"
         B1["Spring Boot应用服务"]
         B2["RESTful API"]
-        B3["WebSocket通信"]
+        B3["SSE流式响应"]
     end
     
     subgraph "AI服务层"
@@ -88,9 +87,9 @@ graph TD
     end
     
     subgraph "中间件层"
-        D1["Redis缓存"]
+        D1["Redis<br/>(Sa-Token登录状态)"]
         D2["Kafka消息队列"]
-        D3["阿里云OSS"]
+        D3["Nginx<br/>(第三方图片代理)"]
     end
     
     subgraph "数据存储层"
@@ -99,15 +98,14 @@ graph TD
     end
     
     %% 连接关系
-    A1 --> A3
-    A2 --> A3
-    A3 --> B2
+    A1 --> B2
+    A2 --> B2
+    A1 --> D3
     
     B1 --> B2
     B1 --> B3
     B1 --> D1
     B1 --> D2
-    B1 --> D3
     B1 --> C1
     B1 --> C2
     
@@ -188,20 +186,24 @@ sequenceDiagram
     User->>Frontend: 输入自然语言查询
     Frontend->>Backend: 发送查询请求
     
-    Backend->>Backend: 分析用户查询
-    Backend->>Backend: 查询重写优化
-    
-    Backend->>VectorDB: 向量化查询
-    VectorDB->>Backend: 返回相似房源
-    
-    Backend->>VectorDB: 查询通用知识
-    VectorDB->>Backend: 返回相关知识
-    
-    Backend->>LLM: 发送查询和检索结果
-    
-    LLM->>Backend: 生成自然语言回复
-    Backend->>Frontend: 流式返回结果
-    Frontend->>User: 展示推荐房源和回复
+    alt 直接响应查询
+        Backend->>Frontend: 直接返回响应
+        Frontend->>User: 展示回复
+    else 需要检索增强
+        Backend->>Backend: 查询重写优化
+        
+        Backend->>VectorDB: 向量化查询
+        VectorDB->>Backend: 返回相似房源
+        
+        Backend->>VectorDB: 查询通用知识
+        VectorDB->>Backend: 返回相关知识
+        
+        Backend->>LLM: 发送查询和检索结果
+        
+        LLM->>Backend: 生成自然语言回复
+        Backend->>Frontend: SSE流式返回结果
+        Frontend->>User: 展示推荐房源和回复
+    end
 ```
 
 #### 1. 数据向量化
