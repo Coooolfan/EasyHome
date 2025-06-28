@@ -114,7 +114,6 @@ const sendMessage = async (): Promise<void> => {
           const chunk = decoder.decode(value, { stream: true });
           // 处理SSE格式的数据，移除"data:"前缀并解析JSON
           const lines = chunk.split("\n");
-          console.log("lines: ", lines);
           for (const line of lines) {
             let jsonContent = line.trim();
             if (jsonContent.startsWith("data:"))
@@ -125,8 +124,12 @@ const sendMessage = async (): Promise<void> => {
                 const parsedData: StreamResponse = JSON.parse(jsonContent);
 
                 // 更新最新的AI消息内容为聚合消息
+                // 指针指向messages的最后一个元素
                 const lastMessage = messages.value[messages.value.length - 1];
                 lastMessage.content = parsedData.aggregationMessage;
+                
+                // 解析消息中的房屋ID
+                renderhousesCards(parsedData.aggregationMessage);
 
                 // 如果标记为完成，重置状态
                 if (parsedData.finished) {
@@ -153,6 +156,9 @@ const sendMessage = async (): Promise<void> => {
                 const parsedData: StreamResponse = JSON.parse(jsonContent);
                 const lastMessage = messages.value[messages.value.length - 1];
                 lastMessage.content = parsedData.aggregationMessage;
+                
+                // 解析消息中的房屋ID
+                renderhousesCards(parsedData.aggregationMessage);
               } catch (e) {
                 // 忽略解析错误
               }
@@ -213,6 +219,35 @@ marked.use(
 const renderedContent = (message: Message) => {
   return marked.parse(message.content);
 };
+
+const housesRecommend = ref<number[]>([]);
+
+function renderhousesCards(content: string) {
+  // 解析content，获取housesRecommend
+  // 所有housesRecommend的值都为数字，以类似于 [^1] [^2] [^3] 的形式给出
+  // 将housesRecommend的值都转换为数字，并存储到housesRecommend中
+  // 和原有的值去重后，将新值插入到housesRecommend的头部
+  const regex = /\[\^(\d+)\]/g;
+  let match;
+  const newHouseIds: number[] = [];
+  
+  // 提取所有匹配的数字
+  while ((match = regex.exec(content)) !== null) {
+    const houseId = parseInt(match[1], 10);
+    if (!isNaN(houseId) && !newHouseIds.includes(houseId)) {
+      newHouseIds.push(houseId);
+    }
+  }
+  
+  if (newHouseIds.length > 0) {
+    // 过滤掉已经存在的ID，避免重复
+    const uniqueNewIds = newHouseIds.filter(id => !housesRecommend.value.includes(id));
+    
+    // 将新的ID添加到数组头部
+    housesRecommend.value = [...uniqueNewIds, ...housesRecommend.value];
+  }
+  console.log("housesRecommend: ", housesRecommend.value);
+}
 </script>
 
 <template>
