@@ -46,7 +46,7 @@ public class HouseRecordServiceImpl
     @Resource
     private HouseUserRelationMapper houseUserRelationMapper;
 
-    @Autowired
+    @Resource
     private HouseRecordMapper houseRecordMapper;
 
     @Override
@@ -156,7 +156,7 @@ public class HouseRecordServiceImpl
 
             try {
                 houseMapper.insert(house);
-                val embedding = embed.input(house
+                var embedding = embed.input(house
                                 .toString()).call()
                         .getData().getFirst()
                         .getEmbedding();

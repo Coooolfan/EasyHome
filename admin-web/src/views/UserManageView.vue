@@ -71,11 +71,21 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="isEnable" label="状态" width="80" align="center">
+        <el-table-column prop="isEnable" label="状态" width="130" align="center">
           <template #default="scope">
-            <el-tag :type="scope.row.isEnable ? 'success' : 'danger'" size="small">
-              {{ scope.row.isEnable ? '正常' : '禁用' }}
-            </el-tag>
+            <div class="status-wrapper">
+              <el-tag :type="scope.row.isEnable ? 'success' : 'danger'" size="small">
+                {{ scope.row.isEnable ? '正常' : '禁用' }}
+              </el-tag>
+              <el-button 
+                type="text" 
+                size="small" 
+                @click.stop="handleToggleStatus(scope.row)"
+                class="status-toggle-btn"
+              >
+                {{ scope.row.isEnable ? '禁用' : '启用' }}
+              </el-button>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="注册时间" width="150" align="center">
@@ -510,7 +520,7 @@ const handleDelete = async (row: User) => {
   }
 }
 
-// 提交表单 - 添加/编辑用户 (暂时保留模拟功能)
+// 提交表单 - 添加/编辑用户 - 使用真实API
 const handleSubmit = async () => {
   if (!formRef.value) return
   
@@ -519,31 +529,89 @@ const handleSubmit = async () => {
       submitLoading.value = true
       try {
         if (isEdit.value) {
-          // 编辑现有用户 - API文档中缺少此接口
-          ElMessage.warning('当前API文档中缺少更新用户接口，此功能暂时不可用')
-          console.warn('⚠️ 缺少API: 更新用户接口')
+          // 编辑现有用户 - 使用真实API
+          const userUpdateDTO = {
+            phone: userForm.phone,
+            email: userForm.email,
+            role: userForm.role,
+            isEnable: userForm.isEnable
+          }
           
-          // 模拟成功，待后端接口实现
-          ElMessage.success('用户信息已更新 (模拟)')
+          const response = await axios.put(`/api/admin/users/${currentUser.value.id}`, userUpdateDTO)
+          
+          if (response.data && response.data.code === 'SUCCESS') {
+            ElMessage.success('用户信息更新成功')
+            dialogVisible.value = false
+            loadUserList() // 重新加载用户列表
+          } else {
+            throw new Error(response.data?.message || '更新用户失败')
+          }
         } else {
-          // 新增用户 - API文档中缺少此接口
-          ElMessage.warning('当前API文档中缺少创建用户接口，此功能暂时不可用')
-          console.warn('⚠️ 缺少API: 创建用户接口')
+          // 新增用户 - 使用真实API
+          const userCreateDTO = {
+            username: userForm.username,
+            password: userForm.password,
+            phone: userForm.phone,
+            email: userForm.email,
+            role: userForm.role,
+            isEnable: userForm.isEnable
+          }
           
-          // 模拟成功，待后端接口实现
-          ElMessage.success('新用户已创建 (模拟)')
+          const response = await axios.post('/api/admin/users', userCreateDTO)
+          
+          if (response.data && response.data.code === 'SUCCESS') {
+            ElMessage.success('用户创建成功')
+            dialogVisible.value = false
+            loadUserList() // 重新加载用户列表
+          } else {
+            throw new Error(response.data?.message || '创建用户失败')
+          }
         }
-        
-        dialogVisible.value = false
-        loadUserList() // 重新加载用户列表
       } catch (error: any) {
         console.error('❌ 操作失败:', error)
-        ElMessage.error(error.message || '操作失败')
+        ElMessage.error(error.response?.data?.message || error.message || '操作失败')
       } finally {
         submitLoading.value = false
       }
     }
   })
+}
+
+// 添加修改用户状态功能
+const handleToggleStatus = async (row: User) => {
+  try {
+    const newStatus = !row.isEnable
+    const confirmMessage = newStatus 
+      ? `确定要启用用户 "${row.username}" 吗？` 
+      : `确定要禁用用户 "${row.username}" 吗？${newStatus ? '' : '\n\n禁用后用户将无法登录系统'}`
+    
+    await ElMessageBox.confirm(
+      confirmMessage,
+      newStatus ? '启用确认' : '禁用确认',
+      {
+        confirmButtonText: newStatus ? '确定启用' : '确定禁用',
+        cancelButtonText: '取消',
+        type: newStatus ? 'info' : 'warning'
+      }
+    )
+    
+    // 调用修改用户状态API
+    const response = await axios.put(`/api/admin/users/${row.id}/status`, null, {
+      params: { isEnable: newStatus }
+    })
+    
+    if (response.data && response.data.code === 'SUCCESS') {
+      ElMessage.success(`用户${newStatus ? '启用' : '禁用'}成功`)
+      // 重新加载用户列表
+      loadUserList()
+    } else {
+      throw new Error(response.data?.message || '操作失败')
+    }
+  } catch (error: any) {
+    if (error === 'cancel') return
+    console.error('❌ 状态修改失败:', error)
+    ElMessage.error(error.message || '操作失败')
+  }
 }
 
 // 处理分页大小变化
@@ -613,7 +681,6 @@ const handleView = (row: User) => {
   currentUser.value = { ...row }
   detailDialogVisible.value = true
 }
-
 
 // 重置表单 - 修改为匹配后端字段
 const resetForm = () => {
@@ -1012,6 +1079,19 @@ onMounted(() => {
 .empty-actions .el-button {
   border-radius: 6px;
   margin: 0;
+}
+
+/* 状态切换按钮样式 */
+.status-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.status-toggle-btn {
+  padding: 2px 4px;
+  font-size: 12px;
 }
 
 /* 响应式设计 */

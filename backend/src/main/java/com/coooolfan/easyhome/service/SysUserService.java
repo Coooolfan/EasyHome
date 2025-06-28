@@ -2,10 +2,7 @@ package com.coooolfan.easyhome.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.coooolfan.easyhome.pojo.dto.LoginDTO;
-import com.coooolfan.easyhome.pojo.dto.ProfileDTO;
-import com.coooolfan.easyhome.pojo.dto.RegisterDTO;
-import com.coooolfan.easyhome.pojo.dto.UserQueryDTO;
+import com.coooolfan.easyhome.pojo.dto.*;
 import com.coooolfan.easyhome.pojo.entity.House;
 import com.coooolfan.easyhome.pojo.entity.SysUser;
 import com.coooolfan.easyhome.pojo.vo.UserVO;
@@ -30,4 +27,10 @@ public interface SysUserService
     void updatePasswordById(Long userId, String oldPassword, String newPassword);
 
     List<SysUser> getUsersByPage(Page<SysUser> page, UserQueryDTO userQueryDTO);
+
+    void createUser(UserCreateDTO userCreateDTO);
+
+    void updateUser(Long id, UserUpdateDTO userUpdateDTO);
+
+    void updateUserStatus(Long id, Boolean isEnable);
 }
