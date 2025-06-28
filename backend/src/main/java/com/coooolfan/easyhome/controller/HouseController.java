@@ -47,7 +47,7 @@ public class HouseController {
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
             HouseQueryDTO queryVO) {
-        log.info("vo: {}", queryVO);
+        log.info("current: {}, size: {}, vo: {}", current, size, queryVO);
         Page<House> page = new Page<>(current, size);
         IPage<House> housePage = houseService.getByPage(page, queryVO);
         return Result.ok(housePage);

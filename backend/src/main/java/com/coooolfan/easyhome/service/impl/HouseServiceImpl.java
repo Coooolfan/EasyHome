@@ -56,6 +56,7 @@ public class HouseServiceImpl extends ServiceImpl<HouseMapper, House> implements
     @Override
     public IPage<House> getByPage(Page<House> page, HouseQueryDTO queryVO) {
         QueryWrapper<House> queryWrapper = buildQueryWrapper(queryVO);
+        log.info("page parameters: current={}, size={}, queryVO={}", page.getCurrent(), page.getSize(), queryVO);
         return this.page(page, queryWrapper);
     }
 
