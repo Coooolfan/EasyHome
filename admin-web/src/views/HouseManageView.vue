@@ -49,7 +49,7 @@
               :controls="false"
               size="small"
             />
-            <span class="range-unit">万元</span>
+            <span class="range-unit">元</span>
           </div>
         </el-form-item>
         
@@ -184,7 +184,7 @@
           
           <el-table-column prop="price" label="总价" width="100" align="right">
             <template #default="scope">
-              <span>{{ formatPrice(scope.row.price) }}万</span>
+              <span>{{ formatPrice(scope.row.price) }}</span>
             </template>
           </el-table-column>
           
@@ -283,11 +283,11 @@
                 :min="0" 
                 :precision="1"
                 :step="10"
-                placeholder="万元"
+                placeholder="元"
                 style="width: 100%"
                 :controls="false"
               >
-                <template #append>万元</template>
+                <template #append>元</template>
               </el-input-number>
             </el-form-item>
           </el-col>
@@ -470,7 +470,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">总价</span>
-              <span class="info-value">{{ formatPrice(currentHouse.price) }}万</span>
+              <span class="info-value">{{ formatPrice(currentHouse.price) }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">单价</span>

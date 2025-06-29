@@ -200,7 +200,7 @@
           <el-col :span="8">
             <el-form-item label="售价" prop="price">
               <el-input v-model="houseForm.price" placeholder="请输入售价">
-                <template #suffix>万元</template>
+                <template #suffix>元</template>
               </el-input>
             </el-form-item>
           </el-col>
@@ -313,7 +313,7 @@
               <el-table-column prop="count" label="房源数量" width="120" />
               <el-table-column prop="avgPrice" label="平均价格" width="150">
                 <template #default="scope">
-                  {{ scope.row.avgPrice }} 万元
+                  {{ scope.row.avgPrice }} 元
                 </template>
               </el-table-column>
               <el-table-column prop="trend" label="趋势">
@@ -1069,7 +1069,7 @@ const fetchRecentHouses = async () => {
       // 只取前4条，且字段适配表格
       recentHouses.value = res.data.data.slice(0, 4).map((item: any) => ({
         title: item.title,
-        price: item.price ? `¥${item.price}万` : '-',
+        price: item.price ? `¥${item.price}` : '-',
         status: item.status || 'pending'
       }))
     } else {

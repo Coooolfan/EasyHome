@@ -43,7 +43,7 @@ llm:
 embed:
   #  同一环境确保模型一致，确保返回1536维向量
   #  OPENAI兼容端点 类似于
-  api-url: https://api.etak.cn/v1/embeddings
+  api-url: https://api.oaipro.com/v1/embeddings
   model: text-embedding-3-small
 aliyun:
   oss:

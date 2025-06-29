@@ -96,7 +96,7 @@
           
           <el-table-column prop="price" label="总价" width="90">
             <template #default="scope">
-              <span>{{ scope.row.price }}万</span>
+              <span>{{ scope.row.price }}</span>
             </template>
           </el-table-column>
           
@@ -121,16 +121,10 @@
           </el-table-column>
           
           <!-- 操作列 - 根据状态显示不同按钮 -->
-          <el-table-column label="操作" width="220" fixed="right">
+          <el-table-column label="操作" width="150" fixed="right">
             <template #default="scope">
               <div class="action-buttons">
-                <el-button 
-                  type="primary" 
-                  size="small" 
-                  @click="handleView(scope.row)"
-                >
-                  查看详情
-                </el-button>
+               
                 
                 <!-- 待审核状态显示审核操作 -->
                 <el-dropdown 
@@ -216,7 +210,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">总价</span>
-              <span class="info-value">{{ currentHouse.price }}万</span>
+              <span class="info-value">{{ currentHouse.price }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">面积</span>
