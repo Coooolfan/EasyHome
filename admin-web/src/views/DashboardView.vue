@@ -547,7 +547,7 @@ const recentActivities = ref([
 interface RecentHouse {
   title: string
   price: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: 'RECEIVED' | 'APPROVED' | 'REJECTED'
 }
 
 interface RecentUser {
@@ -561,18 +561,18 @@ const recentUsers = ref<RecentUser[]>([])
 
 const getStatusType = (status: string) => {
   switch (status) {
-    case 'pending': return 'warning'
-    case 'approved': return 'success'
-    case 'rejected': return 'danger'
+    case 'RECEIVED': return 'warning'
+    case 'APPROVED': return 'success'
+    case 'REJECTED': return 'danger'
     default: return 'info'
   }
 }
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'pending': return '待审核'
-    case 'approved': return '已通过'
-    case 'rejected': return '已拒绝'
+    case 'RECEIVED': return '待审核'
+    case 'APPROVED': return '已通过'
+    case 'REJECTED': return '已拒绝'
     default: return '未知'
   }
 }
@@ -1279,12 +1279,12 @@ const exportReport = () => {
 
 const loadDashboardData = async () => {
   // 模拟数据加载
-  recentHouses.value = [
-    { title: '阳光花园三室两厅', price: '¥120万', status: 'pending' },
-    { title: '中央公园精装修', price: '¥200万', status: 'approved' },
-    { title: '市中心商圈住宅', price: '¥180万', status: 'pending' },
-    { title: '湖景别墅', price: '¥350万', status: 'approved' }
-  ]
+  // recentHouses.value = [
+  //   { title: '阳光花园三室两厅', price: '¥120万', status: 'pending' },
+  //   { title: '中央公园精装修', price: '¥200万', status: 'approved' },
+  //   { title: '市中心商圈住宅', price: '¥180万', status: 'pending' },
+  //   { title: '湖景别墅', price: '¥350万', status: 'approved' }
+  // ]
 
   recentUsers.value = [
     { username: '张三', email: 'zhangsan@email.com', registerTime: '01-15' },
