@@ -1,6 +1,8 @@
 package com.coooolfan.easyhome.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.coooolfan.easyhome.exception.BussinessException;
 import com.coooolfan.easyhome.message.AppointmentProducer;
 import com.coooolfan.easyhome.pojo.dto.AppointmentDTO;
 import com.coooolfan.easyhome.pojo.entity.AppointmentRecord;
@@ -32,6 +34,13 @@ public class AppointmentController {
     @Operation(summary = "提交预约请求")
     public Result<Void> submit(@RequestBody AppointmentDTO dto) {
 
+        QueryWrapper<AppointmentRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name", dto.getName());
+        queryWrapper.eq("phone", dto.getPhone());
+        long count = appointmentService.count(queryWrapper);
+        if (count > 5) {
+            throw new BussinessException("预约数量超过限制，请稍后再试");
+        }
         Long userId = StpUtil.getLoginIdAsLong();
         dto.setUserId(userId);
 
